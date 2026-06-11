@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>メディカルトレード株式会社 | 医療機器の専門商社</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- ナビゲーション -->
+  <header id="header">
+    <div class="container nav-inner">
+      <a href="#" class="logo">MedTrade<span>株式会社</span></a>
+      <nav>
+        <ul>
+          <li><a href="#about">会社概要</a></li>
+          <li><a href="#products">取扱製品</a></li>
+          <li><a href="#club">クラブ活動</a></li>
+          <li><a href="#recruit">採用情報</a></li>
+          <li><a href="#contact" class="btn-nav">お問い合わせ</a></li>
+        </ul>
+      </nav>
+      <button class="hamburger" id="hamburger" aria-label="メニュー">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </header>
+
+  <!-- モバイルメニュー -->
+  <div class="mobile-menu" id="mobileMenu">
+    <ul>
+      <li><a href="#about" onclick="closeMenu()">会社概要</a></li>
+      <li><a href="#products" onclick="closeMenu()">取扱製品</a></li>
+      <li><a href="#club" onclick="closeMenu()">クラブ活動</a></li>
+      <li><a href="#recruit" onclick="closeMenu()">採用情報</a></li>
+      <li><a href="#contact" onclick="closeMenu()">お問い合わせ</a></li>
+    </ul>
+  </div>
+
+  <!-- ヒーロー -->
+  <section class="hero">
+    <div class="hero-content">
+      <p class="hero-tag">医療の未来を、共に支える</p>
+      <h1>先進医療機器で<br />医療現場に<br />貢献します</h1>
+      <p class="hero-sub">MedTrade株式会社は、国内外の優れた医療機器を医療機関へ届ける専門商社です。</p>
+      <div class="hero-btns">
+        <a href="#products" class="btn-primary">取扱製品を見る</a>
+        <a href="#contact" class="btn-secondary">お問い合わせ</a>
+      </div>
+    </div>
+    <div class="hero-graphic">
+      <div class="circle c1"></div>
+      <div class="circle c2"></div>
+      <div class="circle c3"></div>
+    </div>
+  </section>
+
+  <!-- 数字で見る実績 -->
+  <section class="stats">
+    <div class="container stats-grid">
+      <div class="stat-item">
+        <span class="stat-num">1,200<small>+</small></span>
+        <span class="stat-label">取引医療機関数</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-num">350<small>+</small></span>
+        <span class="stat-label">取扱製品数</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-num">30<small>年</small></span>
+        <span class="stat-label">業界実績</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-num">98<small>%</small></span>
+        <span class="stat-label">顧客満足度</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- 会社概要 -->
+  <section id="about" class="section">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-tag">About Us</span>
+        <h2>会社概要・ミッション</h2>
+      </div>
+      <div class="about-grid">
+        <div class="about-text">
+          <h3>私たちのミッション</h3>
+          <p>医療機器の専門商社として、最先端の医療技術を医療現場へ届けることで、患者さんの命と生活の質を守ります。メーカーと医療機関の橋渡しとして、信頼・品質・スピードを三本柱に事業を展開しています。</p>
+          <div class="values">
+            <div class="value-card">
+              <div class="value-icon">🏥</div>
+              <h4>信頼</h4>
+              <p>30年以上にわたる医療現場との信頼関係</p>
+            </div>
+            <div class="value-card">
+              <div class="value-icon">⚕️</div>
+              <h4>品質</h4>
+              <p>厳格な品質管理と安全基準への徹底したこだわり</p>
+            </div>
+            <div class="value-card">
+              <div class="value-icon">🚀</div>
+              <h4>革新</h4>
+              <p>最新技術の積極的な導入と情報提供</p>
+            </div>
+          </div>
+        </div>
+        <div class="about-table-wrap">
+          <h3>会社情報</h3>
+          <table class="company-table">
+            <tr><th>会社名</th><td>MedTrade株式会社</td></tr>
+            <tr><th>設立</th><td>1994年4月</td></tr>
+            <tr><th>資本金</th><td>5,000万円</td></tr>
+            <tr><th>代表取締役</th><td>山田 太郎</td></tr>
+            <tr><th>従業員数</th><td>120名</td></tr>
+            <tr><th>事業内容</th><td>医療機器・医療用消耗品の販売、保守サービス、コンサルティング</td></tr>
+            <tr><th>所在地</th><td>東京都千代田区丸の内1-1-1</td></tr>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 取扱製品 -->
+  <section id="products" class="section section-alt">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-tag">Products & Services</span>
+        <h2>取扱製品・サービス</h2>
+      </div>
+      <div class="products-grid">
+        <div class="product-card">
+          <div class="product-icon">🩻</div>
+          <h3>画像診断機器</h3>
+          <p>MRI・CT・超音波診断装置など、高精度な画像診断機器を幅広く取り扱っています。</p>
+          <ul>
+            <li>MRI装置</li>
+            <li>CT装置</li>
+            <li>超音波診断装置</li>
+            <li>X線診断装置</li>
+          </ul>
+        </div>
+        <div class="product-card">
+          <div class="product-icon">💉</div>
+          <h3>手術・処置機器</h3>
+          <p>手術室で使用される各種機器や処置用医療機器を提供しています。</p>
+          <ul>
+            <li>内視鏡システム</li>
+            <li>電気メス・止血装置</li>
+            <li>手術用ロボット支援機器</li>
+            <li>麻酔器</li>
+          </ul>
+        </div>
+        <div class="product-card">
+          <div class="product-icon">❤️</div>
+          <h3>循環器・モニタリング</h3>
+          <p>患者の状態を24時間監視する生体モニターや循環器系機器を提供します。</p>
+          <ul>
+            <li>生体情報モニター</li>
+            <li>心電計</li>
+            <li>除細動器</li>
+            <li>ペースメーカー関連機器</li>
+          </ul>
+        </div>
+        <div class="product-card">
+          <div class="product-icon">🔬</div>
+          <h3>検体検査機器</h3>
+          <p>精度の高い検体検査を実現する自動分析装置や検査試薬を取り扱います。</p>
+          <ul>
+            <li>血液自動分析装置</li>
+            <li>生化学分析装置</li>
+            <li>免疫測定装置</li>
+            <li>遺伝子検査機器</li>
+          </ul>
+        </div>
+        <div class="product-card">
+          <div class="product-icon">🛏️</div>
+          <h3>在宅・介護医療機器</h3>
+          <p>自宅療養や介護施設向けの医療機器で、患者のQOL向上を支援します。</p>
+          <ul>
+            <li>在宅酸素療法機器</li>
+            <li>人工呼吸器</li>
+            <li>輸液ポンプ</li>
+            <li>電動介護ベッド</li>
+          </ul>
+        </div>
+        <div class="product-card">
+          <div class="product-icon">🛠️</div>
+          <h3>保守・メンテナンス</h3>
+          <p>納入後の機器の安定稼働をサポートする充実したアフターサービスを提供します。</p>
+          <ul>
+            <li>定期点検・保守契約</li>
+            <li>修理・部品供給</li>
+            <li>操作研修・教育サポート</li>
+            <li>24時間緊急対応</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- クラブ活動 -->
+  <section id="club" class="section">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-tag">Club Activities</span>
+        <h2>クラブ活動</h2>
+        <p class="section-desc">社員の絆を深め、心身ともに充実した職場環境を目指しています。多彩なクラブ活動が活発に行われています。</p>
+      </div>
+      <div class="clubs-grid">
+        <div class="club-card">
+          <div class="club-img club-img-sports"></div>
+          <div class="club-body">
+            <h3>⚽ サッカー部</h3>
+            <p>週末に地域リーグや他社との交流試合を実施。体力づくりとチームワーク向上を目指しています。</p>
+            <span class="club-badge">毎週土曜</span>
+          </div>
+        </div>
+        <div class="club-card">
+          <div class="club-img club-img-running"></div>
+          <div class="club-body">
+            <h3>🏃 マラソン部</h3>
+            <p>朝活ランニングから大会参加まで。健康維持と仲間との達成感を共有するクラブです。</p>
+            <span class="club-badge">週3回</span>
+          </div>
+        </div>
+        <div class="club-card">
+          <div class="club-img club-img-culture"></div>
+          <div class="club-body">
+            <h3>📸 写真部</h3>
+            <p>季節ごとの撮影会や写真展を開催。部署を超えた交流の場として人気があります。</p>
+            <span class="club-badge">月2回</span>
+          </div>
+        </div>
+        <div class="club-card">
+          <div class="club-img club-img-cooking"></div>
+          <div class="club-body">
+            <h3>🍳 料理部</h3>
+            <p>健康的なレシピの研究や食文化の交流を楽しむクラブ。社員食堂イベントにも参加しています。</p>
+            <span class="club-badge">月1回</span>
+          </div>
+        </div>
+        <div class="club-card">
+          <div class="club-img club-img-board"></div>
+          <div class="club-body">
+            <h3>♟️ ボードゲーム部</h3>
+            <p>戦略ゲームから軽いパーティーゲームまで幅広く楽しんでいます。論理的思考力も鍛えられます。</p>
+            <span class="club-badge">月2回</span>
+          </div>
+        </div>
+        <div class="club-card">
+          <div class="club-img club-img-volunteer"></div>
+          <div class="club-body">
+            <h3>🤝 ボランティア部</h3>
+            <p>地域清掃活動や医療知識の普及活動など、社会貢献活動を積極的に行っています。</p>
+            <span class="club-badge">月1回</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 採用情報 -->
+  <section id="recruit" class="section section-alt">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-tag">Recruit</span>
+        <h2>採用情報</h2>
+        <p class="section-desc">医療業界で社会に貢献したい方、共に成長しましょう。</p>
+      </div>
+      <div class="recruit-grid">
+        <div class="recruit-message">
+          <h3>私たちと一緒に、<br />医療の未来を作りませんか？</h3>
+          <p>MedTradeでは、医療機器という人の命に関わる仕事に誇りを持って取り組む仲間を募集しています。未経験でも充実した研修制度で、一人前のMRとして活躍できます。</p>
+          <div class="benefits">
+            <div class="benefit"><span>📚</span>充実した研修制度</div>
+            <div class="benefit"><span>📈</span>明確なキャリアパス</div>
+            <div class="benefit"><span>🏠</span>住宅手当・各種手当</div>
+            <div class="benefit"><span>⏰</span>フレックスタイム制</div>
+            <div class="benefit"><span>🌴</span>年間休日125日</div>
+            <div class="benefit"><span>💪</span>健康管理サポート</div>
+          </div>
+        </div>
+        <div class="job-listings">
+          <h3>募集職種</h3>
+          <div class="job-card">
+            <div class="job-header">
+              <h4>医療機器営業（MR）</h4>
+              <span class="job-type">正社員</span>
+            </div>
+            <p>病院・クリニックへの医療機器の提案・販売。新卒・中途ともに歓迎。</p>
+            <div class="job-detail">
+              <span>💴 350〜600万円</span>
+              <span>📍 全国各地</span>
+            </div>
+          </div>
+          <div class="job-card">
+            <div class="job-header">
+              <h4>カスタマーエンジニア（CE）</h4>
+              <span class="job-type">正社員</span>
+            </div>
+            <p>医療機器の設置・保守・修理を担当。理工系・医療系資格者優遇。</p>
+            <div class="job-detail">
+              <span>💴 380〜650万円</span>
+              <span>📍 関東・関西</span>
+            </div>
+          </div>
+          <div class="job-card">
+            <div class="job-header">
+              <h4>営業事務・カスタマーサポート</h4>
+              <span class="job-type">正社員 / 契約社員</span>
+            </div>
+            <p>受発注管理、顧客対応、社内サポート業務全般。未経験歓迎。</p>
+            <div class="job-detail">
+              <span>💴 280〜420万円</span>
+              <span>📍 東京本社</span>
+            </div>
+          </div>
+          <a href="#contact" class="btn-primary btn-recruit">採用に関するお問い合わせ</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- お問い合わせ -->
+  <section id="contact" class="section">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-tag">Contact</span>
+        <h2>お問い合わせ</h2>
+        <p class="section-desc">製品・サービスのご質問、お見積もり依頼など、お気軽にご連絡ください。</p>
+      </div>
+      <div class="contact-wrap">
+        <div class="contact-info">
+          <div class="contact-item">
+            <span class="contact-icon">📞</span>
+            <div>
+              <strong>電話でのお問い合わせ</strong>
+              <p>03-1234-5678</p>
+              <small>平日 9:00〜18:00</small>
+            </div>
+          </div>
+          <div class="contact-item">
+            <span class="contact-icon">📧</span>
+            <div>
+              <strong>メールでのお問い合わせ</strong>
+              <p>info@medtrade.co.jp</p>
+              <small>24時間受付・営業日中に返信</small>
+            </div>
+          </div>
+          <div class="contact-item">
+            <span class="contact-icon">📍</span>
+            <div>
+              <strong>所在地</strong>
+              <p>東京都千代田区丸の内1-1-1</p>
+              <small>東京駅 丸の内北口 徒歩3分</small>
+            </div>
+          </div>
+        </div>
+        <form class="contact-form" id="contactForm" onsubmit="submitForm(event)">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="name">お名前 <span class="required">*</span></label>
+              <input type="text" id="name" name="name" placeholder="山田 太郎" required />
+            </div>
+            <div class="form-group">
+              <label for="company">会社・病院名</label>
+              <input type="text" id="company" name="company" placeholder="〇〇病院" />
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="email">メールアドレス <span class="required">*</span></label>
+              <input type="email" id="email" name="email" placeholder="example@hospital.jp" required />
+            </div>
+            <div class="form-group">
+              <label for="phone">電話番号</label>
+              <input type="tel" id="phone" name="phone" placeholder="03-0000-0000" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="category">お問い合わせ種別 <span class="required">*</span></label>
+            <select id="category" name="category" required>
+              <option value="">選択してください</option>
+              <option>製品・サービスについて</option>
+              <option>お見積もり依頼</option>
+              <option>デモ・説明会のご依頼</option>
+              <option>採用について</option>
+              <option>その他</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="message">お問い合わせ内容 <span class="required">*</span></label>
+            <textarea id="message" name="message" rows="5" placeholder="ご質問・ご要望をご記入ください" required></textarea>
+          </div>
+          <div class="form-check">
+            <input type="checkbox" id="privacy" required />
+            <label for="privacy">プライバシーポリシーに同意します</label>
+          </div>
+          <button type="submit" class="btn-primary btn-submit">送信する</button>
+        </form>
+        <div class="form-success" id="formSuccess" style="display:none;">
+          <div class="success-icon">✅</div>
+          <h3>送信が完了しました</h3>
+          <p>お問い合わせありがとうございます。<br />担当者より2営業日以内にご連絡いたします。</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- フッター -->
+  <footer class="footer">
+    <div class="container footer-inner">
+      <div class="footer-brand">
+        <a href="#" class="logo logo-light">MedTrade<span>株式会社</span></a>
+        <p>先進医療機器で医療現場に貢献します。</p>
+      </div>
+      <div class="footer-links">
+        <div>
+          <h4>会社情報</h4>
+          <ul>
+            <li><a href="#about">会社概要</a></li>
+            <li><a href="#about">ミッション</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4>製品・サービス</h4>
+          <ul>
+            <li><a href="#products">取扱製品</a></li>
+            <li><a href="#products">保守サービス</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4>採用・活動</h4>
+          <ul>
+            <li><a href="#recruit">採用情報</a></li>
+            <li><a href="#club">クラブ活動</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4>お問い合わせ</h4>
+          <ul>
+            <li><a href="#contact">お問い合わせフォーム</a></li>
+            <li><a href="tel:0312345678">03-1234-5678</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>© 2024 MedTrade株式会社. All Rights Reserved.</p>
+      <div class="footer-bottom-links">
+        <a href="#">プライバシーポリシー</a>
+        <a href="#">利用規約</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
