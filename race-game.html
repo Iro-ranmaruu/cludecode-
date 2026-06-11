@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>2人レースゲーム</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #1a1a2e;
+    color: #eee;
+    font-family: 'Segoe UI', sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+    padding: 20px;
+  }
+  h1 {
+    font-size: 2rem;
+    margin-bottom: 8px;
+    color: #e94560;
+    text-shadow: 0 0 20px #e9456077;
+  }
+  #controls-info {
+    display: flex;
+    gap: 60px;
+    margin-bottom: 20px;
+    font-size: 0.9rem;
+  }
+  .player-info {
+    text-align: center;
+    padding: 10px 20px;
+    border-radius: 10px;
+  }
+  .p1-info { background: #0f3460; border: 2px solid #4fc3f7; }
+  .p2-info { background: #3d0000; border: 2px solid #ff7043; }
+  .player-info strong { font-size: 1.1rem; display: block; margin-bottom: 4px; }
+
+  #game-area {
+    position: relative;
+    width: 800px;
+    background: #0d1b2a;
+    border-radius: 16px;
+    padding: 20px;
+    border: 2px solid #333;
+  }
+
+  .track-container {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .track-label {
+    font-size: 1rem;
+    font-weight: bold;
+    margin-bottom: 6px;
+  }
+  .p1-label { color: #4fc3f7; }
+  .p2-label { color: #ff7043; }
+
+  .track {
+    position: relative;
+    height: 70px;
+    background: #1e3a5f22;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 2px solid #333;
+  }
+  .track-road {
+    position: absolute;
+    top: 50%;
+    left: 60px;
+    right: 60px;
+    height: 8px;
+    background: #444;
+    transform: translateY(-50%);
+    border-radius: 4px;
+  }
+  .track-road::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 0; right: 0;
+    height: 2px;
+    background: repeating-linear-gradient(90deg, #888 0px, #888 12px, transparent 12px, transparent 24px);
+    transform: translateY(-50%);
+  }
+
+  .start-flag, .goal-flag {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 1.6rem;
+  }
+  .start-flag { left: 12px; }
+  .goal-flag { right: 12px; }
+
+  .player-car {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 2rem;
+    transition: left 0.05s ease-out;
+    filter: drop-shadow(0 0 6px currentColor);
+  }
+  .car1 { color: #4fc3f7; left: 60px; }
+  .car2 { color: #ff7043; left: 60px; }
+
+  .progress-bar-wrap {
+    width: 100%;
+    height: 6px;
+    background: #222;
+    border-radius: 3px;
+    margin-top: 6px;
+  }
+  .progress-bar {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0.1s;
+    width: 0%;
+  }
+  .bar1 { background: linear-gradient(90deg, #0288d1, #4fc3f7); }
+  .bar2 { background: linear-gradient(90deg, #d84315, #ff7043); }
+
+  #message {
+    text-align: center;
+    font-size: 2rem;
+    font-weight: bold;
+    height: 60px;
+    line-height: 60px;
+    margin: 16px 0 8px;
+    text-shadow: 0 0 20px currentColor;
+  }
+
+  #countdown {
+    font-size: 4rem;
+    font-weight: bold;
+    text-align: center;
+    height: 80px;
+    line-height: 80px;
+    color: #ffd700;
+    text-shadow: 0 0 30px #ffd70088;
+  }
+
+  .btn-row {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    margin-top: 10px;
+  }
+  button {
+    padding: 12px 32px;
+    font-size: 1rem;
+    font-weight: bold;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: transform 0.1s, opacity 0.1s;
+  }
+  button:active { transform: scale(0.96); }
+  #start-btn { background: #e94560; color: white; }
+  #reset-btn { background: #555; color: white; }
+
+  .key-badge {
+    display: inline-block;
+    background: #333;
+    border: 1px solid #666;
+    border-radius: 4px;
+    padding: 2px 8px;
+    font-family: monospace;
+    font-size: 0.85rem;
+  }
+
+  #tap-area {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    margin-top: 12px;
+  }
+  .tap-btn {
+    width: 140px;
+    height: 80px;
+    font-size: 1.2rem;
+    border-radius: 12px;
+    border: 3px solid;
+    background: transparent;
+    font-weight: bold;
+    user-select: none;
+  }
+  .tap1 { color: #4fc3f7; border-color: #4fc3f7; }
+  .tap2 { color: #ff7043; border-color: #ff7043; }
+  .tap1:active { background: #4fc3f722; }
+  .tap2:active { background: #ff704322; }
+</style>
+</head>
+<body>
+
+<h1>🏁 2人レースゲーム</h1>
+
+<div id="controls-info">
+  <div class="player-info p1-info">
+    <strong>🚙 プレイヤー1</strong>
+    キーボード: <span class="key-badge">Z</span> を連打
+  </div>
+  <div class="player-info p2-info">
+    <strong>🚗 プレイヤー2</strong>
+    キーボード: <span class="key-badge">/</span> を連打
+  </div>
+</div>
+
+<div id="game-area">
+  <div class="track-container">
+
+    <div>
+      <div class="track-label p1-label">🚙 プレイヤー1</div>
+      <div class="track" id="track1">
+        <div class="track-road"></div>
+        <div class="start-flag">🚦</div>
+        <div class="goal-flag">🏁</div>
+        <div class="player-car car1" id="car1">🚙</div>
+      </div>
+      <div class="progress-bar-wrap"><div class="progress-bar bar1" id="bar1"></div></div>
+    </div>
+
+    <div>
+      <div class="track-label p2-label">🚗 プレイヤー2</div>
+      <div class="track" id="track2">
+        <div class="track-road"></div>
+        <div class="start-flag">🚦</div>
+        <div class="goal-flag">🏁</div>
+        <div class="player-car car2" id="car2">🚗</div>
+      </div>
+      <div class="progress-bar-wrap"><div class="progress-bar bar2" id="bar2"></div></div>
+    </div>
+
+  </div>
+
+  <div id="countdown"></div>
+  <div id="message"></div>
+
+  <div class="btn-row">
+    <button id="start-btn">▶ スタート</button>
+    <button id="reset-btn">↺ リセット</button>
+  </div>
+
+  <div id="tap-area">
+    <button class="tap-btn tap1" id="tap1">🚙<br>タップ!</button>
+    <button class="tap-btn tap2" id="tap2">🚗<br>タップ!</button>
+  </div>
+</div>
+
+<script>
+const TRACK_START = 60;
+const TRACK_END_OFFSET = 60;
+const STEP = 12;
+const COUNTDOWN_SECS = 3;
+
+let state = 'idle'; // idle | countdown | racing | finished
+let pos1 = 0, pos2 = 0;
+let trackWidth = 0;
+let countdownTimer = null;
+
+const car1 = document.getElementById('car1');
+const car2 = document.getElementById('car2');
+const bar1 = document.getElementById('bar1');
+const bar2 = document.getElementById('bar2');
+const message = document.getElementById('message');
+const countdownEl = document.getElementById('countdown');
+const startBtn = document.getElementById('start-btn');
+const resetBtn = document.getElementById('reset-btn');
+const tap1 = document.getElementById('tap1');
+const tap2 = document.getElementById('tap2');
+
+function getTrackMax() {
+  return document.getElementById('track1').offsetWidth - TRACK_START - TRACK_END_OFFSET;
+}
+
+function updateCar(carEl, bar, pos) {
+  const max = getTrackMax();
+  const px = TRACK_START + Math.min(pos, max);
+  carEl.style.left = px + 'px';
+  bar.style.width = Math.min(pos / max * 100, 100) + '%';
+}
+
+function advance(player) {
+  if (state !== 'racing') return;
+  if (player === 1) {
+    pos1 += STEP + Math.random() * 4;
+    updateCar(car1, bar1, pos1);
+    checkWin(1);
+  } else {
+    pos2 += STEP + Math.random() * 4;
+    updateCar(car2, bar2, pos2);
+    checkWin(2);
+  }
+}
+
+function checkWin(player) {
+  const max = getTrackMax();
+  if (player === 1 && pos1 >= max) {
+    finishGame(1);
+  } else if (player === 2 && pos2 >= max) {
+    finishGame(2);
+  }
+}
+
+function finishGame(winner) {
+  state = 'finished';
+  if (winner === 1) {
+    message.style.color = '#4fc3f7';
+    message.textContent = '🏆 プレイヤー1 の勝ち！';
+  } else {
+    message.style.color = '#ff7043';
+    message.textContent = '🏆 プレイヤー2 の勝ち！';
+  }
+  // finish both bars
+  updateCar(car1, bar1, pos1);
+  updateCar(car2, bar2, pos2);
+}
+
+function startCountdown() {
+  if (state === 'racing' || state === 'countdown') return;
+  state = 'countdown';
+  message.textContent = '';
+  let count = COUNTDOWN_SECS;
+  countdownEl.textContent = count;
+  countdownTimer = setInterval(() => {
+    count--;
+    if (count > 0) {
+      countdownEl.textContent = count;
+    } else {
+      clearInterval(countdownTimer);
+      countdownEl.textContent = 'GO!';
+      setTimeout(() => { countdownEl.textContent = ''; }, 700);
+      state = 'racing';
+    }
+  }, 900);
+}
+
+function resetGame() {
+  if (countdownTimer) clearInterval(countdownTimer);
+  state = 'idle';
+  pos1 = 0; pos2 = 0;
+  updateCar(car1, bar1, 0);
+  updateCar(car2, bar2, 0);
+  message.textContent = '';
+  countdownEl.textContent = '';
+}
+
+// keyboard
+document.addEventListener('keydown', (e) => {
+  if (e.repeat) return;
+  if (e.key === 'z' || e.key === 'Z') advance(1);
+  if (e.key === '/' || e.key === '？') advance(2);
+  if (e.key === 'Enter') startCountdown();
+  if (e.key === 'r' || e.key === 'R') resetGame();
+});
+
+// buttons
+startBtn.addEventListener('click', startCountdown);
+resetBtn.addEventListener('click', resetGame);
+tap1.addEventListener('click', () => advance(1));
+tap2.addEventListener('click', () => advance(2));
+// touch support
+tap1.addEventListener('touchstart', (e) => { e.preventDefault(); advance(1); });
+tap2.addEventListener('touchstart', (e) => { e.preventDefault(); advance(2); });
+
+// init
+updateCar(car1, bar1, 0);
+updateCar(car2, bar2, 0);
+window.addEventListener('resize', () => {
+  updateCar(car1, bar1, pos1);
+  updateCar(car2, bar2, pos2);
+});
+</script>
+</body>
+</html>
