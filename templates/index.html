@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>議事録 AI サマリー</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: "Hiragino Sans", "Meiryo", "Yu Gothic", sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 2rem 1rem;
+    }
+
+    .container {
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+      width: 100%;
+      max-width: 860px;
+      overflow: hidden;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 2rem 2.5rem;
+    }
+
+    .header h1 {
+      font-size: 1.8rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+    }
+
+    .header p {
+      margin-top: 0.4rem;
+      opacity: 0.85;
+      font-size: 0.95rem;
+    }
+
+    .body { padding: 2rem 2.5rem; }
+
+    /* Upload zone */
+    .upload-zone {
+      border: 2px dashed #c4b5fd;
+      border-radius: 12px;
+      padding: 2.5rem;
+      text-align: center;
+      cursor: pointer;
+      transition: background 0.2s, border-color 0.2s;
+      background: #faf5ff;
+      position: relative;
+    }
+
+    .upload-zone:hover, .upload-zone.drag-over {
+      background: #f3e8ff;
+      border-color: #7c3aed;
+    }
+
+    .upload-zone input[type="file"] {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0;
+      cursor: pointer;
+    }
+
+    .upload-icon {
+      font-size: 3rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .upload-zone h2 {
+      font-size: 1.1rem;
+      color: #4c1d95;
+      margin-bottom: 0.4rem;
+    }
+
+    .upload-zone p {
+      font-size: 0.85rem;
+      color: #7c3aed;
+    }
+
+    .file-info {
+      margin-top: 1rem;
+      display: none;
+      align-items: center;
+      gap: 0.6rem;
+      background: #ede9fe;
+      border-radius: 8px;
+      padding: 0.6rem 1rem;
+      font-size: 0.9rem;
+      color: #4c1d95;
+    }
+
+    .file-info.visible { display: flex; }
+
+    .btn {
+      display: block;
+      width: 100%;
+      margin-top: 1.25rem;
+      padding: 0.85rem;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.2s, transform 0.1s;
+      letter-spacing: 0.05em;
+    }
+
+    .btn:hover:not(:disabled) { opacity: 0.9; transform: translateY(-1px); }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    /* Result */
+    .result-section {
+      margin-top: 2rem;
+      display: none;
+    }
+
+    .result-section.visible { display: block; }
+
+    .result-header {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: #4c1d95;
+      margin-bottom: 1rem;
+    }
+
+    .result-box {
+      background: #fafafa;
+      border: 1px solid #e5e7eb;
+      border-radius: 10px;
+      padding: 1.5rem;
+      min-height: 200px;
+      font-size: 0.95rem;
+      line-height: 1.8;
+      white-space: pre-wrap;
+      word-break: break-word;
+      color: #1f2937;
+      position: relative;
+    }
+
+    .spinner {
+      display: inline-block;
+      width: 18px;
+      height: 18px;
+      border: 3px solid #c4b5fd;
+      border-top-color: #7c3aed;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      vertical-align: middle;
+      margin-right: 6px;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .status-bar {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 0.75rem;
+      font-size: 0.85rem;
+      color: #6d28d9;
+      min-height: 1.5rem;
+    }
+
+    .copy-btn {
+      display: none;
+      margin-top: 1rem;
+      padding: 0.5rem 1.25rem;
+      background: #ede9fe;
+      color: #4c1d95;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      cursor: pointer;
+      font-weight: 600;
+      transition: background 0.2s;
+    }
+
+    .copy-btn:hover { background: #ddd6fe; }
+    .copy-btn.visible { display: inline-block; }
+
+    .error-msg {
+      color: #dc2626;
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+      border-radius: 8px;
+      padding: 0.75rem 1rem;
+      font-size: 0.9rem;
+      margin-top: 1rem;
+      display: none;
+    }
+
+    .error-msg.visible { display: block; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>📝 議事録 AI サマリー</h1>
+    <p>ファイルをアップロードするだけで、AIが議事録を自動要約します</p>
+  </div>
+
+  <div class="body">
+    <div class="upload-zone" id="uploadZone">
+      <input type="file" id="fileInput" accept=".txt,.pdf,.docx" />
+      <div class="upload-icon">📄</div>
+      <h2>ここにファイルをドロップ、またはクリックして選択</h2>
+      <p>対応形式: TXT・PDF・DOCX（最大 50MB）</p>
+    </div>
+
+    <div class="file-info" id="fileInfo">
+      <span>📎</span>
+      <span id="fileName"></span>
+    </div>
+
+    <button class="btn" id="submitBtn" disabled>要約を生成する</button>
+
+    <div class="error-msg" id="errorMsg"></div>
+
+    <div class="result-section" id="resultSection">
+      <div class="result-header">✨ 要約結果</div>
+      <div class="status-bar" id="statusBar"></div>
+      <div class="result-box" id="resultBox"></div>
+      <button class="copy-btn" id="copyBtn" onclick="copyResult()">📋 コピー</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const fileInput = document.getElementById("fileInput");
+  const uploadZone = document.getElementById("uploadZone");
+  const fileInfo = document.getElementById("fileInfo");
+  const fileName = document.getElementById("fileName");
+  const submitBtn = document.getElementById("submitBtn");
+  const resultSection = document.getElementById("resultSection");
+  const resultBox = document.getElementById("resultBox");
+  const statusBar = document.getElementById("statusBar");
+  const copyBtn = document.getElementById("copyBtn");
+  const errorMsg = document.getElementById("errorMsg");
+
+  fileInput.addEventListener("change", () => {
+    const file = fileInput.files[0];
+    if (file) {
+      fileName.textContent = file.name + " (" + formatSize(file.size) + ")";
+      fileInfo.classList.add("visible");
+      submitBtn.disabled = false;
+    }
+  });
+
+  uploadZone.addEventListener("dragover", (e) => {
+    e.preventDefault();
+    uploadZone.classList.add("drag-over");
+  });
+
+  uploadZone.addEventListener("dragleave", () => uploadZone.classList.remove("drag-over"));
+
+  uploadZone.addEventListener("drop", (e) => {
+    e.preventDefault();
+    uploadZone.classList.remove("drag-over");
+    const dt = e.dataTransfer;
+    if (dt.files.length) {
+      fileInput.files = dt.files;
+      fileInput.dispatchEvent(new Event("change"));
+    }
+  });
+
+  function formatSize(bytes) {
+    if (bytes < 1024) return bytes + " B";
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + " KB";
+    return (bytes / (1024 * 1024)).toFixed(1) + " MB";
+  }
+
+  submitBtn.addEventListener("click", async () => {
+    const file = fileInput.files[0];
+    if (!file) return;
+
+    submitBtn.disabled = true;
+    errorMsg.classList.remove("visible");
+    resultSection.classList.add("visible");
+    resultBox.textContent = "";
+    copyBtn.classList.remove("visible");
+    statusBar.innerHTML = '<span class="spinner"></span> AIが議事録を分析しています...';
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      const response = await fetch("/summarize", { method: "POST", body: formData });
+
+      if (!response.ok) {
+        const err = await response.json();
+        throw new Error(err.error || "サーバーエラーが発生しました");
+      }
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n");
+        buffer = lines.pop();
+
+        for (const line of lines) {
+          if (!line.startsWith("data: ")) continue;
+          const data = line.slice(6);
+          if (data === "[DONE]") {
+            statusBar.innerHTML = "✅ 要約が完了しました";
+            copyBtn.classList.add("visible");
+            submitBtn.disabled = false;
+            break;
+          }
+          if (data.startsWith("[ERROR]")) {
+            throw new Error(data.slice(8));
+          }
+          resultBox.textContent += data;
+        }
+      }
+    } catch (err) {
+      statusBar.innerHTML = "";
+      resultSection.classList.remove("visible");
+      errorMsg.textContent = "エラー: " + err.message;
+      errorMsg.classList.add("visible");
+      submitBtn.disabled = false;
+    }
+  });
+
+  function copyResult() {
+    navigator.clipboard.writeText(resultBox.textContent).then(() => {
+      const orig = copyBtn.textContent;
+      copyBtn.textContent = "✅ コピーしました";
+      setTimeout(() => { copyBtn.textContent = orig; }, 2000);
+    });
+  }
+</script>
+</body>
+</html>
