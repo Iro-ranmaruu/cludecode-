@@ -37,6 +37,7 @@ function rowToItem(row: any): RequestItemRecord {
     deliveryPrice: row.delivery_price,
     standardWholesalePrice: row.standard_wholesale_price,
     desiredWholesalePrice: row.desired_wholesale_price,
+    guidelinePrice: row.guideline_price,
     monthlyAvgSales: row.monthly_avg_sales,
     existingSpecialPriceFlag: !!row.existing_special_price_flag,
     deliveryStartDate: row.delivery_start_date,
@@ -104,13 +105,13 @@ export function createRequest(input: RequestInput): string {
   const insertItem = db.prepare(`
     INSERT INTO request_items (
       id, request_id, order_index, product_name, maker_code, product_code, packing_unit,
-      delivery_price, standard_wholesale_price, desired_wholesale_price,
+      delivery_price, standard_wholesale_price, desired_wholesale_price, guideline_price,
       monthly_avg_sales, existing_special_price_flag, delivery_start_date,
       register_special_price, end_date, product_abbreviation, decision,
       decided_wholesale_price
     ) VALUES (
       @id, @request_id, @order_index, @product_name, @maker_code, @product_code, @packing_unit,
-      @delivery_price, @standard_wholesale_price, @desired_wholesale_price,
+      @delivery_price, @standard_wholesale_price, @desired_wholesale_price, @guideline_price,
       @monthly_avg_sales, @existing_special_price_flag, @delivery_start_date,
       @register_special_price, @end_date, @product_abbreviation, @decision,
       @decided_wholesale_price
@@ -159,6 +160,7 @@ export function createRequest(input: RequestInput): string {
         delivery_price: toNumber(item.deliveryPrice),
         standard_wholesale_price: toNumber(item.standardWholesalePrice),
         desired_wholesale_price: toNumber(item.desiredWholesalePrice),
+        guideline_price: toNumber(item.guidelinePrice),
         monthly_avg_sales: item.monthlyAvgSales || null,
         existing_special_price_flag: item.existingSpecialPriceFlag ? 1 : 0,
         delivery_start_date: item.deliveryStartDate || null,

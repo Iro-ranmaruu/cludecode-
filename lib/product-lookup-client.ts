@@ -1,6 +1,8 @@
 export interface ProductLookupResult {
   productName: string;
   packingUnit: string;
+  standardWholesalePrice: number | null;
+  guidelinePrice: number | null;
 }
 
 export async function fetchProductInfo(
@@ -17,7 +19,12 @@ export async function fetchProductInfo(
     if (!res.ok) return null;
     const data = await res.json();
     if (!data.found) return null;
-    return { productName: data.productName, packingUnit: data.packingUnit };
+    return {
+      productName: data.productName,
+      packingUnit: data.packingUnit,
+      standardWholesalePrice: data.standardWholesalePrice,
+      guidelinePrice: data.guidelinePrice,
+    };
   } catch {
     return null;
   }

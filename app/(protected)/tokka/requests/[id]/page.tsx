@@ -139,6 +139,7 @@ export default async function RequestDetailPage({
                     <InfoItem label="納入価" value={formatNumber(item.deliveryPrice)} />
                     <InfoItem label="通常仕切" value={formatNumber(item.standardWholesalePrice)} />
                     <InfoItem label="希望仕切額" value={formatNumber(item.desiredWholesalePrice)} />
+                    <InfoItem label="特価目安" value={formatNumber(item.guidelinePrice)} />
                     <InfoItem label="希望値引額" value={formatNumber(discount)} />
                     <InfoItem label="月平均販売量" value={item.monthlyAvgSales} />
                     <InfoItem label="納入開始日" value={item.deliveryStartDate} />

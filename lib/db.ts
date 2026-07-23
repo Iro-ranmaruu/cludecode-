@@ -1,6 +1,7 @@
 import Database from "better-sqlite3";
 import path from "path";
 import fs from "fs";
+import { parseCsvText } from "@/lib/csv";
 
 const dataDir = path.join(process.cwd(), "data");
 if (!fs.existsSync(dataDir)) {
@@ -46,6 +47,8 @@ db.exec(`
     product_code TEXT NOT NULL,
     product_name TEXT NOT NULL,
     packing_unit TEXT,
+    standard_wholesale_price REAL,
+    guideline_price REAL,
     updated_at TEXT NOT NULL,
     PRIMARY KEY (maker_code, product_code)
   );
@@ -88,6 +91,7 @@ db.exec(`
     delivery_price REAL,
     standard_wholesale_price REAL,
     desired_wholesale_price REAL,
+    guideline_price REAL,
     monthly_avg_sales TEXT,
     existing_special_price_flag INTEGER NOT NULL DEFAULT 0,
     delivery_start_date TEXT,
@@ -188,5 +192,65 @@ db.exec(`
 
   CREATE INDEX IF NOT EXISTS idx_sample_request_items_request_id ON sample_request_items(sample_request_id);
 `);
+
+function seedProductMasterIfEmpty() {
+  const row = db.prepare(`SELECT COUNT(*) AS cnt FROM product_master`).get() as {
+    cnt: number;
+  };
+  if (row.cnt > 0) return;
+
+  const seedPath = path.join(process.cwd(), "data-seed", "product-master.csv");
+  if (!fs.existsSync(seedPath)) return;
+
+  const text = fs.readFileSync(seedPath, "utf-8");
+  const lines = parseCsvText(text);
+  if (lines.length === 0) return;
+
+  const [header, ...dataRows] = lines;
+  const col = (name: string) => header.indexOf(name);
+  const iMaker = col("maker_code");
+  const iProduct = col("product_code");
+  const iName = col("product_name");
+  const iUnit = col("packing_unit");
+  const iStdPrice = col("standard_wholesale_price");
+  const iGuidePrice = col("guideline_price");
+  if (iMaker < 0 || iProduct < 0 || iName < 0) return;
+
+  const insert = db.prepare(`
+    INSERT INTO product_master (
+      maker_code, product_code, product_name, packing_unit,
+      standard_wholesale_price, guideline_price, updated_at
+    ) VALUES (@maker_code, @product_code, @product_name, @packing_unit,
+      @standard_wholesale_price, @guideline_price, @updated_at)
+    ON CONFLICT(maker_code, product_code) DO NOTHING
+  `);
+
+  const now = new Date().toISOString();
+  const tx = db.transaction(() => {
+    for (const row of dataRows) {
+      const maker = row[iMaker];
+      const product = row[iProduct];
+      const name = row[iName];
+      if (!maker || !product || !name) continue;
+      const toNum = (v: string | undefined) => {
+        if (v === undefined || v.trim() === "") return null;
+        const n = Number(v);
+        return Number.isNaN(n) ? null : n;
+      };
+      insert.run({
+        maker_code: maker,
+        product_code: product,
+        product_name: name,
+        packing_unit: iUnit >= 0 ? row[iUnit] || null : null,
+        standard_wholesale_price: iStdPrice >= 0 ? toNum(row[iStdPrice]) : null,
+        guideline_price: iGuidePrice >= 0 ? toNum(row[iGuidePrice]) : null,
+        updated_at: now,
+      });
+    }
+  });
+  tx();
+}
+
+seedProductMasterIfEmpty();
 
 export default db;

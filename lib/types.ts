@@ -21,6 +21,7 @@ export interface RequestItemInput {
   deliveryPrice: string;
   standardWholesalePrice: string;
   desiredWholesalePrice: string;
+  guidelinePrice: string;
   monthlyAvgSales: string;
   existingSpecialPriceFlag: boolean;
   deliveryStartDate: string;
@@ -63,6 +64,7 @@ export interface RequestItemRecord {
   deliveryPrice: number | null;
   standardWholesalePrice: number | null;
   desiredWholesalePrice: number | null;
+  guidelinePrice: number | null;
   monthlyAvgSales: string | null;
   existingSpecialPriceFlag: boolean;
   deliveryStartDate: string | null;

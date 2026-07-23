@@ -70,12 +70,32 @@ export default function RequestForm({ currentUser }: RequestFormProps) {
     const productInput = row.querySelector<HTMLInputElement>('[data-field="productCode"]');
     const nameInput = row.querySelector<HTMLInputElement>('[data-field="productName"]');
     const unitInput = row.querySelector<HTMLInputElement>('[data-field="packingUnit"]');
+    const standardPriceInput = row.querySelector<HTMLInputElement>(
+      '[data-field="standardWholesalePrice"]'
+    );
+    const guidelinePriceInput = row.querySelector<HTMLInputElement>(
+      '[data-field="guidelinePrice"]'
+    );
+    const guidelineDisplay = row.querySelector<HTMLElement>('[data-guideline-display]');
     if (!makerInput || !productInput || !nameInput) return;
 
     const result = await fetchProductInfo(makerInput.value, productInput.value);
     if (result) {
       nameInput.value = result.productName;
       if (unitInput) unitInput.value = result.packingUnit;
+      if (standardPriceInput && result.standardWholesalePrice !== null) {
+        standardPriceInput.value = String(result.standardWholesalePrice);
+      }
+      if (guidelinePriceInput) {
+        guidelinePriceInput.value =
+          result.guidelinePrice !== null ? String(result.guidelinePrice) : "";
+      }
+      if (guidelineDisplay) {
+        guidelineDisplay.textContent =
+          result.guidelinePrice !== null
+            ? `特価目安: ¥${result.guidelinePrice.toLocaleString("ja-JP")}`
+            : "特価目安: -";
+      }
     }
   }
 
@@ -256,14 +276,18 @@ export default function RequestForm({ currentUser }: RequestFormProps) {
                     className={inputCls}
                   />
                 </Field>
-                <Field label="通常仕切" required>
+                <Field label="通常仕切（営業仕切）" required>
                   <input
                     type="number"
                     step="any"
                     name={`items[${i}][standardWholesalePrice]`}
+                    data-field="standardWholesalePrice"
                     required
                     className={inputCls}
                   />
+                  <p className="mt-1 text-xs text-slate-400">
+                    メーカーコード・商品コードから商品マスタを参照して自動入力されます（手動で修正可）
+                  </p>
                 </Field>
                 <Field label="希望仕切額" required>
                   <input
@@ -272,6 +296,14 @@ export default function RequestForm({ currentUser }: RequestFormProps) {
                     name={`items[${i}][desiredWholesalePrice]`}
                     required
                     className={inputCls}
+                  />
+                  <p data-guideline-display className="mt-1 text-xs text-sky-600">
+                    特価目安: -
+                  </p>
+                  <input
+                    type="hidden"
+                    name={`items[${i}][guidelinePrice]`}
+                    data-field="guidelinePrice"
                   />
                 </Field>
                 <Field label="月平均販売量">

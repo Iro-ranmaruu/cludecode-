@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/session";
+import { parseCsvLine } from "@/lib/csv";
 import {
   deleteProductMasterRow,
   upsertProductMasterRow,
@@ -13,6 +14,12 @@ function str(formData: FormData, key: string): string {
   return typeof v === "string" ? v : "";
 }
 
+function toNum(v: string | undefined): number | null {
+  if (v === undefined || v.trim() === "") return null;
+  const n = Number(v);
+  return Number.isNaN(n) ? null : n;
+}
+
 async function requirePlanningUser() {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
@@ -20,36 +27,6 @@ async function requirePlanningUser() {
     throw new Error("この操作には企画権限が必要です");
   }
   return user;
-}
-
-function parseCsvLine(line: string): string[] {
-  const cells: string[] = [];
-  let current = "";
-  let inQuotes = false;
-  for (let i = 0; i < line.length; i++) {
-    const c = line[i];
-    if (inQuotes) {
-      if (c === '"') {
-        if (line[i + 1] === '"') {
-          current += '"';
-          i++;
-        } else {
-          inQuotes = false;
-        }
-      } else {
-        current += c;
-      }
-    } else if (c === '"') {
-      inQuotes = true;
-    } else if (c === ",") {
-      cells.push(current);
-      current = "";
-    } else {
-      current += c;
-    }
-  }
-  cells.push(current);
-  return cells.map((c) => c.trim());
 }
 
 export async function importProductMasterCsvAction(formData: FormData) {
@@ -64,7 +41,8 @@ export async function importProductMasterCsvAction(formData: FormData) {
   let imported = 0;
   for (const line of lines) {
     const cells = parseCsvLine(line);
-    const [makerCode, productCode, productName, packingUnit] = cells;
+    const [makerCode, productCode, productName, packingUnit, standardPrice, guidelinePrice] =
+      cells;
     if (!makerCode || !productCode || !productName) continue;
     // Skip an obvious header row.
     if (
@@ -79,6 +57,8 @@ export async function importProductMasterCsvAction(formData: FormData) {
       productCode: productCode.trim(),
       productName: productName.trim(),
       packingUnit: (packingUnit || "").trim(),
+      standardWholesalePrice: toNum(standardPrice),
+      guidelinePrice: toNum(guidelinePrice),
     });
     imported++;
   }
@@ -93,12 +73,21 @@ export async function addProductMasterRowAction(formData: FormData) {
   const productCode = str(formData, "productCode").trim();
   const productName = str(formData, "productName").trim();
   const packingUnit = str(formData, "packingUnit").trim();
+  const standardWholesalePrice = toNum(str(formData, "standardWholesalePrice"));
+  const guidelinePrice = toNum(str(formData, "guidelinePrice"));
 
   if (!makerCode || !productCode || !productName) {
     throw new Error("メーカーコード・商品コード・商品名を入力してください");
   }
 
-  upsertProductMasterRow({ makerCode, productCode, productName, packingUnit });
+  upsertProductMasterRow({
+    makerCode,
+    productCode,
+    productName,
+    packingUnit,
+    standardWholesalePrice,
+    guidelinePrice,
+  });
   revalidatePath("/master");
 }
 

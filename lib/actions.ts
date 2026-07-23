@@ -44,6 +44,7 @@ export async function submitRequestAction(formData: FormData) {
       deliveryPrice: str(formData, `items[${i}][deliveryPrice]`),
       standardWholesalePrice: str(formData, `items[${i}][standardWholesalePrice]`),
       desiredWholesalePrice: str(formData, `items[${i}][desiredWholesalePrice]`),
+      guidelinePrice: str(formData, `items[${i}][guidelinePrice]`),
       monthlyAvgSales: str(formData, `items[${i}][monthlyAvgSales]`),
       existingSpecialPriceFlag:
         str(formData, `items[${i}][existingSpecialPriceFlag]`) === "on",

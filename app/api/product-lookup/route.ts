@@ -23,5 +23,7 @@ export async function GET(request: NextRequest) {
     found: true,
     productName: product.productName,
     packingUnit: product.packingUnit || "",
+    standardWholesalePrice: product.standardWholesalePrice,
+    guidelinePrice: product.guidelinePrice,
   });
 }
