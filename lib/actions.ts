@@ -7,6 +7,7 @@ import {
   updateItemDecision,
   updatePlanningRemarks,
 } from "@/lib/requests-repo";
+import { getCurrentUser } from "@/lib/session";
 import type { ItemDecision, RequestInput, RequestItemInput } from "@/lib/types";
 
 function str(formData: FormData, key: string): string {
@@ -15,6 +16,9 @@ function str(formData: FormData, key: string): string {
 }
 
 export async function submitRequestAction(formData: FormData) {
+  const user = await getCurrentUser();
+  if (!user) redirect("/login");
+
   const itemCount = Number(formData.get("itemCount") || 0);
   const items: RequestItemInput[] = [];
   for (let i = 0; i < itemCount; i++) {
@@ -36,6 +40,7 @@ export async function submitRequestAction(formData: FormData) {
       productName,
       makerCode: str(formData, `items[${i}][makerCode]`),
       productCode: str(formData, `items[${i}][productCode]`),
+      packingUnit: str(formData, `items[${i}][packingUnit]`),
       deliveryPrice: str(formData, `items[${i}][deliveryPrice]`),
       standardWholesalePrice: str(formData, `items[${i}][standardWholesalePrice]`),
       desiredWholesalePrice: str(formData, `items[${i}][desiredWholesalePrice]`),
@@ -62,6 +67,7 @@ export async function submitRequestAction(formData: FormData) {
     });
 
   const input: RequestInput = {
+    createdBy: user.id,
     applicationDate: str(formData, "applicationDate"),
     branchName: str(formData, "branchName"),
     branchCode: str(formData, "branchCode"),
@@ -88,8 +94,8 @@ export async function submitRequestAction(formData: FormData) {
   }
 
   const id = createRequest(input);
-  revalidatePath("/requests");
-  redirect(`/requests/${id}?submitted=1`);
+  revalidatePath("/tokka/requests");
+  redirect(`/tokka/requests/${id}?submitted=1`);
 }
 
 export async function updateItemDecisionAction(formData: FormData) {
@@ -104,14 +110,14 @@ export async function updateItemDecisionAction(formData: FormData) {
     decidedWholesalePrice.trim() === "" ? null : decidedWholesalePrice
   );
 
-  revalidatePath(`/requests/${requestId}`);
-  revalidatePath("/requests");
+  revalidatePath(`/tokka/requests/${requestId}`);
+  revalidatePath("/tokka/requests");
 }
 
 export async function updatePlanningRemarksAction(formData: FormData) {
   const requestId = str(formData, "requestId");
   const remarks = str(formData, "remarks");
   updatePlanningRemarks(requestId, remarks);
-  revalidatePath(`/requests/${requestId}`);
-  revalidatePath("/requests");
+  revalidatePath(`/tokka/requests/${requestId}`);
+  revalidatePath("/tokka/requests");
 }

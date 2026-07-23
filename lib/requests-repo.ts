@@ -33,6 +33,7 @@ function rowToItem(row: any): RequestItemRecord {
     productName: row.product_name,
     makerCode: row.maker_code,
     productCode: row.product_code,
+    packingUnit: row.packing_unit,
     deliveryPrice: row.delivery_price,
     standardWholesalePrice: row.standard_wholesale_price,
     desiredWholesalePrice: row.desired_wholesale_price,
@@ -53,6 +54,7 @@ function rowToRequest(row: any, items: RequestItemRecord[]): RequestRecord {
     id: row.id,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
+    createdBy: row.created_by,
     applicationDate: row.application_date,
     branchName: row.branch_name,
     branchCode: row.branch_code,
@@ -83,14 +85,14 @@ export function createRequest(input: RequestInput): string {
 
   const insertRequest = db.prepare(`
     INSERT INTO requests (
-      id, created_at, updated_at, application_date, branch_name, branch_code,
+      id, created_at, updated_at, created_by, application_date, branch_name, branch_code,
       supervisor_name, staff_name, employee_number, customer_facility_name,
       delivery_department, customer_codes, competitor_maker_name,
       competitor_product_name, competitor_product_code, competitor_jan_code,
       competitor_purchase_price, competitor_delivery_price, competitor_vendor,
       reason_type, special_notes, planning_remarks, status
     ) VALUES (
-      @id, @created_at, @updated_at, @application_date, @branch_name, @branch_code,
+      @id, @created_at, @updated_at, @created_by, @application_date, @branch_name, @branch_code,
       @supervisor_name, @staff_name, @employee_number, @customer_facility_name,
       @delivery_department, @customer_codes, @competitor_maker_name,
       @competitor_product_name, @competitor_product_code, @competitor_jan_code,
@@ -101,13 +103,13 @@ export function createRequest(input: RequestInput): string {
 
   const insertItem = db.prepare(`
     INSERT INTO request_items (
-      id, request_id, order_index, product_name, maker_code, product_code,
+      id, request_id, order_index, product_name, maker_code, product_code, packing_unit,
       delivery_price, standard_wholesale_price, desired_wholesale_price,
       monthly_avg_sales, existing_special_price_flag, delivery_start_date,
       register_special_price, end_date, product_abbreviation, decision,
       decided_wholesale_price
     ) VALUES (
-      @id, @request_id, @order_index, @product_name, @maker_code, @product_code,
+      @id, @request_id, @order_index, @product_name, @maker_code, @product_code, @packing_unit,
       @delivery_price, @standard_wholesale_price, @desired_wholesale_price,
       @monthly_avg_sales, @existing_special_price_flag, @delivery_start_date,
       @register_special_price, @end_date, @product_abbreviation, @decision,
@@ -120,6 +122,7 @@ export function createRequest(input: RequestInput): string {
       id,
       created_at: now,
       updated_at: now,
+      created_by: input.createdBy || null,
       application_date: input.applicationDate || null,
       branch_name: input.branchName || null,
       branch_code: input.branchCode || null,
@@ -152,6 +155,7 @@ export function createRequest(input: RequestInput): string {
         product_name: item.productName || null,
         maker_code: item.makerCode || null,
         product_code: item.productCode || null,
+        packing_unit: item.packingUnit || null,
         delivery_price: toNumber(item.deliveryPrice),
         standard_wholesale_price: toNumber(item.standardWholesalePrice),
         desired_wholesale_price: toNumber(item.desiredWholesalePrice),

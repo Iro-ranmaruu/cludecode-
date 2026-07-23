@@ -2,6 +2,7 @@
 
 import { useId, useState } from "react";
 import { submitRequestAction } from "@/lib/actions";
+import { fetchProductInfo } from "@/lib/product-lookup-client";
 
 const inputCls =
   "w-full rounded-md border border-slate-300 px-3 py-1.5 text-sm shadow-sm focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500";
@@ -47,12 +48,36 @@ function Section({
   );
 }
 
-export default function RequestForm() {
+interface RequestFormProps {
+  currentUser?: {
+    name: string;
+    employeeNumber: string;
+    branchName: string | null;
+  } | null;
+}
+
+export default function RequestForm({ currentUser }: RequestFormProps) {
   const uid = useId();
   const [itemIds, setItemIds] = useState<string[]>([`${uid}-0`]);
   const [customerCodeIds, setCustomerCodeIds] = useState<string[]>([
     `${uid}-c0`,
   ]);
+
+  async function handleProductLookupBlur(e: React.FocusEvent<HTMLInputElement>) {
+    const row = e.currentTarget.closest("[data-item-row]");
+    if (!row) return;
+    const makerInput = row.querySelector<HTMLInputElement>('[data-field="makerCode"]');
+    const productInput = row.querySelector<HTMLInputElement>('[data-field="productCode"]');
+    const nameInput = row.querySelector<HTMLInputElement>('[data-field="productName"]');
+    const unitInput = row.querySelector<HTMLInputElement>('[data-field="packingUnit"]');
+    if (!makerInput || !productInput || !nameInput) return;
+
+    const result = await fetchProductInfo(makerInput.value, productInput.value);
+    if (result) {
+      nameInput.value = result.productName;
+      if (unitInput) unitInput.value = result.packingUnit;
+    }
+  }
 
   return (
     <form action={submitRequestAction} className="space-y-6">
@@ -70,7 +95,12 @@ export default function RequestForm() {
             />
           </Field>
           <Field label="店所名" required>
-            <input name="branchName" required className={inputCls} />
+            <input
+              name="branchName"
+              required
+              defaultValue={currentUser?.branchName || ""}
+              className={inputCls}
+            />
           </Field>
           <Field label="店所コード">
             <input name="branchCode" className={inputCls} />
@@ -79,10 +109,19 @@ export default function RequestForm() {
             <input name="supervisorName" className={inputCls} />
           </Field>
           <Field label="担当者名" required>
-            <input name="staffName" required className={inputCls} />
+            <input
+              name="staffName"
+              required
+              defaultValue={currentUser?.name || ""}
+              className={inputCls}
+            />
           </Field>
           <Field label="社員番号">
-            <input name="employeeNumber" className={inputCls} />
+            <input
+              name="employeeNumber"
+              defaultValue={currentUser?.employeeNumber || ""}
+              className={inputCls}
+            />
           </Field>
         </div>
       </Section>
@@ -151,6 +190,7 @@ export default function RequestForm() {
           {itemIds.map((id, i) => (
             <div
               key={id}
+              data-item-row
               className="rounded-md border border-slate-200 p-4"
             >
               <div className="mb-3 flex items-center justify-between">
@@ -171,18 +211,36 @@ export default function RequestForm() {
               </div>
 
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                <Field label="メーカーコード">
+                  <input
+                    name={`items[${i}][makerCode]`}
+                    data-field="makerCode"
+                    onBlur={handleProductLookupBlur}
+                    className={inputCls}
+                  />
+                </Field>
+                <Field label="商品コード">
+                  <input
+                    name={`items[${i}][productCode]`}
+                    data-field="productCode"
+                    onBlur={handleProductLookupBlur}
+                    className={inputCls}
+                  />
+                </Field>
                 <Field label="商品名" required>
                   <input
                     name={`items[${i}][productName]`}
+                    data-field="productName"
                     required
                     className={inputCls}
                   />
                 </Field>
-                <Field label="メーカーコード">
-                  <input name={`items[${i}][makerCode]`} className={inputCls} />
-                </Field>
-                <Field label="商品コード">
-                  <input name={`items[${i}][productCode]`} className={inputCls} />
+                <Field label="梱包単位">
+                  <input
+                    name={`items[${i}][packingUnit]`}
+                    data-field="packingUnit"
+                    className={inputCls}
+                  />
                 </Field>
                 <Field label="商品略称">
                   <input

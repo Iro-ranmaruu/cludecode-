@@ -1,6 +1,9 @@
 import RequestForm from "@/components/RequestForm";
+import { getCurrentUser } from "@/lib/session";
 
-export default function NewRequestPage() {
+export default async function NewRequestPage() {
+  const user = await getCurrentUser();
+
   return (
     <div className="mx-auto max-w-4xl px-4 py-10 sm:px-6">
       <div className="mb-6">
@@ -11,7 +14,7 @@ export default function NewRequestPage() {
           入力して送信すると、企画側の一覧に申請が追加されます。
         </p>
       </div>
-      <RequestForm />
+      <RequestForm currentUser={user} />
     </div>
   );
 }

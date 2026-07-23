@@ -1,6 +1,7 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { getRequestById } from "@/lib/requests-repo";
+import { getCurrentUser } from "@/lib/session";
 import {
   updateItemDecisionAction,
   updatePlanningRemarksAction,
@@ -35,13 +36,27 @@ export default async function RequestDetailPage({
 }) {
   const { id } = await params;
   const sp = await searchParams;
+  const user = await getCurrentUser();
+  if (!user) redirect("/login");
+
   const request = getRequestById(id);
   if (!request) return notFound();
+
+  const isPlanning = user.role === "企画";
+  if (!isPlanning && request.createdBy !== user.id) {
+    return (
+      <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6">
+        <div className="rounded-md border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+          この申請を閲覧する権限がありません。
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-10 sm:px-6">
       <div className="mb-4">
-        <Link href="/requests" className="text-sm text-slate-500 hover:underline">
+        <Link href="/tokka/requests" className="text-sm text-slate-500 hover:underline">
           ← 申請一覧へ戻る
         </Link>
       </div>
@@ -119,6 +134,7 @@ export default async function RequestDetailPage({
                   <dl className="mt-3 grid grid-cols-2 gap-3 text-sm sm:grid-cols-4">
                     <InfoItem label="メーカーコード" value={item.makerCode} />
                     <InfoItem label="商品コード" value={item.productCode} />
+                    <InfoItem label="梱包単位" value={item.packingUnit} />
                     <InfoItem label="商品略称" value={item.productAbbreviation} />
                     <InfoItem label="納入価" value={formatNumber(item.deliveryPrice)} />
                     <InfoItem label="通常仕切" value={formatNumber(item.standardWholesalePrice)} />
@@ -134,46 +150,48 @@ export default async function RequestDetailPage({
                     />
                   </dl>
 
-                  <form
-                    action={updateItemDecisionAction}
-                    className="mt-4 flex flex-wrap items-end gap-3 border-t border-slate-100 pt-3"
-                  >
-                    <input type="hidden" name="itemId" value={item.id} />
-                    <input type="hidden" name="requestId" value={request.id} />
-                    <div>
-                      <label className="block text-xs font-medium text-slate-500 mb-1">
-                        判定
-                      </label>
-                      <select
-                        name="decision"
-                        defaultValue={item.decision}
-                        className={decisionSelectCls}
-                      >
-                        <option value="未決定">未決定</option>
-                        <option value="承認">承認</option>
-                        <option value="却下">却下</option>
-                        <option value="金額変更">金額変更</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block text-xs font-medium text-slate-500 mb-1">
-                        決定仕切額
-                      </label>
-                      <input
-                        type="number"
-                        step="any"
-                        name="decidedWholesalePrice"
-                        defaultValue={item.decidedWholesalePrice ?? ""}
-                        className={`${decisionSelectCls} w-32`}
-                      />
-                    </div>
-                    <button
-                      type="submit"
-                      className="rounded-md bg-slate-900 px-3 py-1.5 text-xs font-semibold text-white hover:bg-slate-700"
+                  {isPlanning && (
+                    <form
+                      action={updateItemDecisionAction}
+                      className="mt-4 flex flex-wrap items-end gap-3 border-t border-slate-100 pt-3"
                     >
-                      更新
-                    </button>
-                  </form>
+                      <input type="hidden" name="itemId" value={item.id} />
+                      <input type="hidden" name="requestId" value={request.id} />
+                      <div>
+                        <label className="block text-xs font-medium text-slate-500 mb-1">
+                          判定
+                        </label>
+                        <select
+                          name="decision"
+                          defaultValue={item.decision}
+                          className={decisionSelectCls}
+                        >
+                          <option value="未決定">未決定</option>
+                          <option value="承認">承認</option>
+                          <option value="却下">却下</option>
+                          <option value="金額変更">金額変更</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-slate-500 mb-1">
+                          決定仕切額
+                        </label>
+                        <input
+                          type="number"
+                          step="any"
+                          name="decidedWholesalePrice"
+                          defaultValue={item.decidedWholesalePrice ?? ""}
+                          className={`${decisionSelectCls} w-32`}
+                        />
+                      </div>
+                      <button
+                        type="submit"
+                        className="rounded-md bg-slate-900 px-3 py-1.5 text-xs font-semibold text-white hover:bg-slate-700"
+                      >
+                        更新
+                      </button>
+                    </form>
+                  )}
                 </div>
               );
             })}
@@ -209,21 +227,27 @@ export default async function RequestDetailPage({
           <h2 className="text-base font-semibold text-slate-900">
             企画側 備考
           </h2>
-          <form action={updatePlanningRemarksAction} className="mt-3 space-y-3">
-            <input type="hidden" name="requestId" value={request.id} />
-            <textarea
-              name="remarks"
-              rows={3}
-              defaultValue={request.planningRemarks ?? ""}
-              className="w-full rounded-md border border-slate-300 px-3 py-1.5 text-sm shadow-sm focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500"
-            />
-            <button
-              type="submit"
-              className="rounded-md border border-slate-300 px-4 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
-            >
-              備考を保存
-            </button>
-          </form>
+          {isPlanning ? (
+            <form action={updatePlanningRemarksAction} className="mt-3 space-y-3">
+              <input type="hidden" name="requestId" value={request.id} />
+              <textarea
+                name="remarks"
+                rows={3}
+                defaultValue={request.planningRemarks ?? ""}
+                className="w-full rounded-md border border-slate-300 px-3 py-1.5 text-sm shadow-sm focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500"
+              />
+              <button
+                type="submit"
+                className="rounded-md border border-slate-300 px-4 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
+              >
+                備考を保存
+              </button>
+            </form>
+          ) : (
+            <p className="mt-3 text-sm text-slate-700 whitespace-pre-wrap">
+              {request.planningRemarks || "（まだ記入がありません）"}
+            </p>
+          )}
         </section>
       </div>
     </div>

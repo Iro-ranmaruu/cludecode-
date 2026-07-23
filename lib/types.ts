@@ -17,6 +17,7 @@ export interface RequestItemInput {
   productName: string;
   makerCode: string;
   productCode: string;
+  packingUnit: string;
   deliveryPrice: string;
   standardWholesalePrice: string;
   desiredWholesalePrice: string;
@@ -29,6 +30,7 @@ export interface RequestItemInput {
 }
 
 export interface RequestInput {
+  createdBy?: string;
   applicationDate: string;
   branchName: string;
   branchCode: string;
@@ -57,6 +59,7 @@ export interface RequestItemRecord {
   productName: string | null;
   makerCode: string | null;
   productCode: string | null;
+  packingUnit: string | null;
   deliveryPrice: number | null;
   standardWholesalePrice: number | null;
   desiredWholesalePrice: number | null;
@@ -74,6 +77,7 @@ export interface RequestRecord {
   id: string;
   createdAt: string;
   updatedAt: string;
+  createdBy: string | null;
   applicationDate: string | null;
   branchName: string | null;
   branchCode: string | null;
