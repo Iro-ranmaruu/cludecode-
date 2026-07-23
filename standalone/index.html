@@ -267,8 +267,11 @@
 
   function customerCodeRowTemplate() {
     return (
-      '<div style="display:flex; gap:8px; margin-bottom:8px;" data-cc-row>' +
-        '<input type="text" data-cc-input style="flex:1;" />' +
+      '<div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;" data-cc-row>' +
+        '<input type="text" data-cc-input maxlength="6" pattern="[0-9A-Za-z]{6}" ' +
+          'title="半角英数字6桁で入力してください" placeholder="例: JI7000" ' +
+          'style="max-width:140px; text-transform:uppercase;" />' +
+        '<span style="font-size:13px; color:var(--slate-500);">+ 00</span>' +
         '<button type="button" class="btn-secondary btn-sm" data-remove-cc>削除</button>' +
       '</div>'
     );
@@ -305,7 +308,8 @@
             '<input type="text" name="deliveryDepartment" /></div>' +
         '</div>' +
         '<div style="margin-top:16px;">' +
-          '<label class="field-label">得意先コード</label>' +
+          '<label class="field-label">得意先コード（先頭6桁）</label>' +
+          '<p class="muted-xs" style="margin:2px 0 8px;">半角英数字6桁で入力してください。末尾2桁には自動で「00」が付きます。</p>' +
           '<div id="cc-list">' + customerCodeRowTemplate() + '</div>' +
           '<button type="button" class="link-btn" id="add-cc" style="color:var(--slate-600); font-weight:600;">+ 得意先コードを追加</button>' +
         '</div>' +
@@ -423,10 +427,20 @@
         return;
       }
 
-      var customerCodes = Array.prototype.map.call(
+      var customerCodeInputs = Array.prototype.filter.call(
         ccList.querySelectorAll("[data-cc-input]"),
-        function (el) { return el.value.trim(); }
-      ).filter(function (v) { return v !== ""; });
+        function (el) { return el.value.trim() !== ""; }
+      );
+      var invalidCode = customerCodeInputs.some(function (el) {
+        return !/^[0-9A-Za-z]{6}$/.test(el.value.trim());
+      });
+      if (invalidCode) {
+        alert("得意先コードは半角英数字6桁で入力してください。");
+        return;
+      }
+      var customerCodes = customerCodeInputs.map(function (el) {
+        return el.value.trim().toUpperCase() + "00";
+      });
 
       var fd = new FormData(form);
       var req = {

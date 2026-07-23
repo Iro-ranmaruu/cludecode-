@@ -98,11 +98,23 @@ export default function RequestForm() {
         </div>
 
         <div className="mt-4">
-          <label className={labelCls}>得意先コード</label>
+          <label className={labelCls}>得意先コード（先頭6桁）</label>
+          <p className="mb-2 text-xs text-slate-500">
+            半角英数字6桁で入力してください。末尾2桁には自動で「00」が付きます。
+          </p>
           <div className="space-y-2">
             {customerCodeIds.map((id, i) => (
-              <div key={id} className="flex gap-2">
-                <input name="customerCodes[]" className={inputCls} />
+              <div key={id} className="flex items-center gap-2">
+                <input
+                  name="customerCodes[]"
+                  maxLength={6}
+                  pattern="[0-9A-Za-z]{6}"
+                  title="半角英数字6桁で入力してください"
+                  placeholder="例: JI7000"
+                  style={{ textTransform: "uppercase" }}
+                  className={`${inputCls} max-w-[140px]`}
+                />
+                <span className="text-sm text-slate-400">+ 00</span>
                 {customerCodeIds.length > 1 && (
                   <button
                     type="button"

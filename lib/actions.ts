@@ -53,7 +53,13 @@ export async function submitRequestAction(formData: FormData) {
   const customerCodes = customerCodesRaw
     .filter((v): v is string => typeof v === "string")
     .map((v) => v.trim())
-    .filter((v) => v !== "");
+    .filter((v) => v !== "")
+    .map((v) => {
+      if (!/^[0-9A-Za-z]{6}$/.test(v)) {
+        throw new Error("得意先コードは半角英数字6桁で入力してください");
+      }
+      return v.toUpperCase() + "00";
+    });
 
   const input: RequestInput = {
     applicationDate: str(formData, "applicationDate"),
