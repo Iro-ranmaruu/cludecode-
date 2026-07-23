@@ -179,6 +179,8 @@
   .auth-tab { flex: 1; text-align: center; padding: 9px 4px; font-size: 13px; font-weight: 700; color: var(--ink-soft); background: none; border: none; border-bottom: 2px solid transparent; margin-bottom: -1px; cursor: pointer; font-family: inherit; }
   .auth-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
   .auth-form { display: flex; flex-direction: column; gap: 12px; }
+  .demo-hint { margin: 0 0 16px; padding: 10px 12px; border-radius: 8px; background: var(--accent-soft); border: 1px solid var(--accent-soft-line); color: var(--accent-ink); font-size: 12.5px; line-height: 1.6; }
+  .demo-hint strong { font-variant-numeric: tabular-nums; }
 </style>
 </head>
 <body>
@@ -325,6 +327,21 @@
   }
   function isPlanning(user) { return !!user && user.role === "企画"; }
 
+  function seedDemoUser() {
+    if (findUserByEmployeeNumber("4908")) return;
+    var list = loadUsers();
+    list.push({
+      id: uid(),
+      employeeNumber: "4908",
+      password: "wism4908",
+      name: "飯田 彩葉",
+      branchName: "ムトウWiSM製品企画販売部",
+      role: "営業",
+      createdAt: new Date().toISOString()
+    });
+    saveUsers(list);
+  }
+
   // ================= Stores =================
 
   var tokkaStore = makeStore("wism_tokka_requests_v1");
@@ -399,7 +416,8 @@
         '</div>' +
         '<div id="auth-error"></div>' +
         (mode === "login"
-          ? '<form id="login-form" class="auth-form">' +
+          ? '<p class="demo-hint">デモ用ログイン　社員番号: <strong>4908</strong>　パスワード: <strong>wism4908</strong></p>' +
+            '<form id="login-form" class="auth-form">' +
               '<div>' + fieldLabel("社員番号", true) + '<input type="text" name="employeeNumber" required /></div>' +
               '<div>' + fieldLabel("パスワード", true) + '<input type="password" name="password" required /></div>' +
               '<button type="submit" class="btn btn-primary btn-block">ログイン</button>' +
@@ -1301,6 +1319,7 @@
     window.scrollTo(0, 0);
   }
 
+  seedDemoUser();
   window.addEventListener("hashchange", router);
   window.addEventListener("DOMContentLoaded", router);
   router();
