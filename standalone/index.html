@@ -3,171 +3,205 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>WiSM特価申請システム（単体版）</title>
+<title>WiSM製品アプリ（単体版）</title>
 <style>
   :root {
-    --slate-50:#f8fafc; --slate-100:#f1f5f9; --slate-200:#e2e8f0; --slate-300:#cbd5e1;
-    --slate-500:#64748b; --slate-600:#475569; --slate-700:#334155; --slate-900:#0f172a;
-    --rose-100:#ffe4e6; --rose-600:#e11d48; --rose-800:#9f1239;
-    --emerald-100:#d1fae5; --emerald-800:#065f46;
-    --amber-100:#fef3c7; --amber-800:#92400e;
-    --sky-100:#e0f2fe; --sky-800:#075985;
+    --ink: #17202e;
+    --ink-soft: #4b5566;
+    --paper: #f3f5f8;
+    --surface: #ffffff;
+    --line: #dde2ea;
+    --line-soft: #eaedf2;
+    --accent: #2c4c8c;
+    --accent-ink: #1d3564;
+    --accent-soft: #e8edf8;
+    --accent-soft-line: #cdd9ee;
+    --good: #1c7a4d;
+    --good-soft: #e4f4ea;
+    --warn: #935b12;
+    --warn-soft: #fbeed9;
+    --bad: #ab2a2a;
+    --bad-soft: #fbe6e6;
+    --info: #2a6f8a;
+    --info-soft: #e4f2f6;
+    --shadow-sm: 0 1px 2px rgba(23, 32, 46, 0.06);
+    --shadow-md: 0 6px 20px rgba(23, 32, 46, 0.08);
+    --radius: 10px;
   }
+  :root[data-theme="dark"] {
+    --ink: #e8ecf3; --ink-soft: #a7b0c0; --paper: #121722; --surface: #1a2130;
+    --line: #2c3547; --line-soft: #232c3d; --accent: #7ea0dd; --accent-ink: #cfdcf5;
+    --accent-soft: #1f2c47; --accent-soft-line: #33456e; --good: #5cc891; --good-soft: #163828;
+    --warn: #e0a94f; --warn-soft: #3a2c12; --bad: #e58080; --bad-soft: #3a1f1f;
+    --info: #7ec2dc; --info-soft: #17303a;
+    --shadow-sm: 0 1px 2px rgba(0,0,0,.4); --shadow-md: 0 10px 28px rgba(0,0,0,.45);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ink: #e8ecf3; --ink-soft: #a7b0c0; --paper: #121722; --surface: #1a2130;
+      --line: #2c3547; --line-soft: #232c3d; --accent: #7ea0dd; --accent-ink: #cfdcf5;
+      --accent-soft: #1f2c47; --accent-soft-line: #33456e; --good: #5cc891; --good-soft: #163828;
+      --warn: #e0a94f; --warn-soft: #3a2c12; --bad: #e58080; --bad-soft: #3a1f1f;
+      --info: #7ec2dc; --info-soft: #17303a;
+      --shadow-sm: 0 1px 2px rgba(0,0,0,.4); --shadow-md: 0 10px 28px rgba(0,0,0,.45);
+    }
+  }
+
   * { box-sizing: border-box; }
+  html, body { height: 100%; }
   body {
-    margin:0; background:var(--slate-50); color:var(--slate-900);
-    font-family:"Hiragino Kaku Gothic ProN","Hiragino Sans",Meiryo,Arial,Helvetica,sans-serif;
+    margin: 0; background: var(--paper); color: var(--ink); min-height: 100%;
+    display: flex; flex-direction: column;
+    font-family: "Hiragino Kaku Gothic ProN", "Hiragino Sans", "Yu Gothic", "Noto Sans JP", Meiryo, Arial, Helvetica, sans-serif;
+    -webkit-font-smoothing: antialiased; font-feature-settings: "palt" 1;
   }
-  header {
-    background:#fff; border-bottom:1px solid var(--slate-200);
+  ::selection { background: var(--accent-soft-line); }
+  a { color: inherit; }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+
+  header { background: var(--surface); border-bottom: 1px solid var(--line); position: sticky; top: 0; z-index: 10; }
+  header::after { content: ""; display: block; height: 3px; background: linear-gradient(90deg, var(--accent) 0%, var(--accent-soft-line) 55%, transparent 100%); }
+  .header-inner { max-width: 1040px; margin: 0 auto; padding: 14px 24px; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+  .brand { display: inline-flex; align-items: baseline; gap: 8px; font-weight: 700; font-size: 16px; letter-spacing: .01em; text-decoration: none; color: var(--ink); cursor: pointer; }
+  .brand .mark { display: inline-block; width: 9px; height: 9px; border-radius: 2px; background: var(--accent); transform: translateY(-1px); }
+  nav { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+  nav a, nav button.navlink { padding: 7px 12px; border-radius: 7px; font-size: 13px; font-weight: 600; color: var(--ink-soft); text-decoration: none; cursor: pointer; background: none; border: none; font-family: inherit; transition: background .15s ease, color .15s ease; }
+  nav a:hover, nav button.navlink:hover { color: var(--ink); background: var(--line-soft); }
+  .nav-user { font-size: 12.5px; color: var(--ink-soft); padding: 0 6px; white-space: nowrap; }
+  .nav-divider { width: 1px; height: 16px; background: var(--line); margin: 0 2px; }
+  .logout-btn { border: 1px solid var(--line); border-radius: 7px; padding: 6px 12px; font-size: 12px; font-weight: 600; color: var(--ink-soft); background: var(--surface); cursor: pointer; font-family: inherit; }
+  .logout-btn:hover { border-color: var(--accent-soft-line); color: var(--ink); }
+
+  main { max-width: 1040px; margin: 0 auto; padding: 40px 24px 56px; width: 100%; flex: 1; }
+  .center-main { display: flex; align-items: center; justify-content: center; flex: 1; padding: 40px 24px; }
+
+  h1 { font-size: 21px; font-weight: 700; margin: 0 0 4px; letter-spacing: -.01em; text-wrap: balance; }
+  h2 { font-size: 14px; font-weight: 700; margin: 0; letter-spacing: -.005em; }
+  .muted { color: var(--ink-soft); font-size: 14px; line-height: 1.6; }
+  .muted-xs { color: var(--ink-soft); font-size: 12px; line-height: 1.6; }
+
+  .module-grid { display: grid; gap: 20px; margin-top: 36px; }
+  @media (min-width: 640px) { .module-grid { grid-template-columns: 1fr 1fr; } }
+  @media (min-width: 900px) { .module-grid { grid-template-columns: 1fr 1fr 1fr; } }
+  .module-card { border: 1px solid var(--line); background: var(--surface); border-radius: var(--radius); padding: 22px; box-shadow: var(--shadow-sm); }
+  .module-card h2 { font-size: 15px; }
+  .module-card .eyebrow { font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--accent); margin-bottom: 6px; }
+  .module-card .actions { display: flex; gap: 8px; margin-top: 16px; flex-wrap: wrap; }
+
+  section.panel { border: 1px solid var(--line); background: var(--surface); border-radius: var(--radius); padding: 20px 22px; box-shadow: var(--shadow-sm); margin-bottom: 20px; }
+
+  .field-label { display: block; font-size: 11.5px; font-weight: 600; color: var(--ink-soft); margin-bottom: 5px; letter-spacing: .01em; }
+  .required { color: var(--bad); margin-left: 2px; }
+  input[type="text"], input[type="date"], input[type="number"], input[type="password"], select, textarea {
+    width: 100%; border: 1px solid var(--line); background: var(--surface); color: var(--ink);
+    border-radius: 7px; padding: 7px 10px; font-size: 13.5px; font-family: inherit; box-shadow: var(--shadow-sm);
   }
-  .header-inner {
-    max-width:1024px; margin:0 auto; padding:12px 24px;
-    display:flex; align-items:center; justify-content:space-between;
-  }
-  .brand { font-weight:700; font-size:18px; text-decoration:none; color:var(--slate-900); cursor:pointer; }
-  nav a { margin-left:16px; font-size:14px; font-weight:500; color:var(--slate-600); text-decoration:none; cursor:pointer; }
-  nav a:hover { color:var(--slate-900); }
-  main { max-width:1024px; margin:0 auto; padding:40px 24px; }
-  h1 { font-size:20px; font-weight:700; margin:0 0 4px; }
-  h2 { font-size:16px; font-weight:600; margin:0; }
-  .muted { color:var(--slate-600); font-size:14px; }
-  .muted-xs { color:var(--slate-500); font-size:12px; }
-  .cards-grid { display:grid; gap:24px; margin-top:40px; }
-  @media (min-width:640px){ .cards-grid { grid-template-columns:1fr 1fr; } }
-  .card-link {
-    display:block; border:1px solid var(--slate-200); background:#fff; border-radius:8px;
-    padding:24px; box-shadow:0 1px 2px rgba(0,0,0,.04); text-decoration:none; color:inherit;
-  }
-  .card-link:hover { border-color:var(--slate-300); box-shadow:0 4px 8px rgba(0,0,0,.06); }
-  section.panel {
-    border:1px solid var(--slate-200); background:#fff; border-radius:8px; padding:20px;
-    box-shadow:0 1px 2px rgba(0,0,0,.04); margin-bottom:24px;
-  }
-  .field-label { display:block; font-size:12px; font-weight:500; color:var(--slate-600); margin-bottom:4px; }
-  .required { color:var(--rose-600); margin-left:2px; }
-  input[type=text], input[type=date], input[type=number], select, textarea {
-    width:100%; border:1px solid var(--slate-300); border-radius:6px; padding:6px 10px;
-    font-size:14px; font-family:inherit; box-shadow:0 1px 1px rgba(0,0,0,.02);
-  }
-  input:focus, select:focus, textarea:focus { outline:1px solid var(--slate-500); border-color:var(--slate-500); }
-  .grid { display:grid; gap:16px; grid-template-columns:repeat(2,1fr); }
-  @media (min-width:640px){ .grid.cols-3 { grid-template-columns:repeat(3,1fr); } .grid.cols-4 { grid-template-columns:repeat(4,1fr); } }
-  .item-row { border:1px solid var(--slate-200); border-radius:6px; padding:16px; margin-bottom:16px; }
-  .item-row-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; }
-  .item-row-head span.title { font-size:12px; font-weight:600; color:var(--slate-500); }
-  .link-btn { background:none; border:none; padding:0; font-size:12px; cursor:pointer; }
-  .link-btn.danger { color:var(--rose-600); }
-  .link-btn.danger:hover { color:var(--rose-800); }
-  .btn { border-radius:6px; font-weight:600; cursor:pointer; border:1px solid transparent; }
-  .btn-primary { background:var(--slate-900); color:#fff; padding:10px 20px; font-size:14px; }
-  .btn-primary:hover { background:var(--slate-700); }
-  .btn-secondary { background:#fff; border:1px solid var(--slate-300); color:var(--slate-700); padding:6px 14px; font-size:13px; }
-  .btn-secondary:hover { background:var(--slate-50); }
-  .btn-sm { padding:6px 12px; font-size:12px; }
-  .add-row-btn { margin-top:8px; }
-  .checkbox-line { display:flex; align-items:center; gap:8px; font-size:12px; color:var(--slate-600); }
-  .actions-right { display:flex; justify-content:flex-end; gap:12px; }
-  table { width:100%; border-collapse:collapse; font-size:14px; }
-  thead { background:var(--slate-50); text-align:left; font-size:12px; font-weight:600; text-transform:uppercase; color:var(--slate-500); }
-  th, td { padding:12px 16px; border-bottom:1px solid var(--slate-100); }
-  tbody tr:hover { background:var(--slate-50); }
-  .table-wrap { border:1px solid var(--slate-200); border-radius:8px; overflow:hidden; background:#fff; box-shadow:0 1px 2px rgba(0,0,0,.04); }
-  .empty-box { border:1px dashed var(--slate-300); background:#fff; border-radius:8px; padding:40px; text-align:center; color:var(--slate-500); font-size:14px; }
-  .badge { display:inline-flex; align-items:center; border-radius:999px; padding:2px 10px; font-size:12px; font-weight:500; }
-  .badge.submitted { background:var(--amber-100); color:var(--amber-800); }
-  .badge.approved { background:var(--emerald-100); color:var(--emerald-800); }
-  .badge.rejected { background:var(--rose-100); color:var(--rose-800); }
-  .badge.partially_approved { background:var(--sky-100); color:var(--sky-800); }
-  .badge.decision-未決定 { background:var(--slate-100); color:var(--slate-600); }
-  .badge.decision-承認 { background:var(--emerald-100); color:var(--emerald-800); }
-  .badge.decision-却下 { background:var(--rose-100); color:var(--rose-800); }
-  .badge.decision-金額変更 { background:var(--sky-100); color:var(--sky-800); }
-  .banner-success {
-    margin-bottom:24px; border:1px solid #a7f3d0; background:#ecfdf5; color:#065f46;
-    padding:12px 16px; border-radius:6px; font-size:14px;
-  }
-  .back-link { display:inline-block; margin-bottom:16px; font-size:14px; color:var(--slate-500); text-decoration:none; }
-  .back-link:hover { text-decoration:underline; }
-  .detail-title-row { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:8px; margin-bottom:24px; }
-  dl.info-grid { display:grid; gap:16px; grid-template-columns:repeat(2,1fr); margin:16px 0 0; }
-  @media (min-width:640px){ dl.info-grid.cols-3 { grid-template-columns:repeat(3,1fr); } dl.info-grid.cols-4 { grid-template-columns:repeat(4,1fr); } }
-  dl.info-grid dt { font-size:12px; font-weight:500; color:var(--slate-500); }
-  dl.info-grid dd { margin:2px 0 0; font-size:14px; }
-  .item-detail-card { border:1px solid var(--slate-200); border-radius:6px; padding:16px; margin-bottom:16px; }
-  .item-detail-head { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:8px; }
-  .item-detail-head .name { font-size:14px; font-weight:600; }
-  .decision-form { display:flex; flex-wrap:wrap; align-items:flex-end; gap:12px; margin-top:16px; padding-top:12px; border-top:1px solid var(--slate-100); }
-  .decision-form .field { display:flex; flex-direction:column; gap:4px; }
-  .decision-form select, .decision-form input { padding:5px 8px; font-size:13px; }
-  .decision-form input.price { width:120px; }
-  .notice {
-    max-width:1024px; margin:16px auto 0; padding:12px 24px; font-size:13px; color:var(--slate-500);
-  }
+  input::placeholder, textarea::placeholder { color: var(--ink-soft); opacity: .7; }
+  input:focus, select:focus, textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+  input[type="number"] { font-variant-numeric: tabular-nums; }
+  .radio-row { display: flex; flex-wrap: wrap; gap: 6px 18px; padding-top: 4px; }
+  .radio-row label { display: flex; align-items: center; gap: 6px; font-size: 13.5px; color: var(--ink); cursor: pointer; }
+
+  .grid { display: grid; gap: 14px; grid-template-columns: repeat(2, 1fr); }
+  @media (min-width: 640px) { .grid.cols-3 { grid-template-columns: repeat(3, 1fr); } .grid.cols-4 { grid-template-columns: repeat(4, 1fr); } }
+
+  .item-row { border: 1px solid var(--line); border-radius: 9px; padding: 16px; margin-bottom: 14px; background: var(--paper); }
+  .item-row-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+  .item-row-head span.title { font-size: 11.5px; font-weight: 700; color: var(--ink-soft); text-transform: uppercase; letter-spacing: .04em; }
+
+  .link-btn { background: none; border: none; padding: 0; font-size: 12px; font-weight: 600; cursor: pointer; color: var(--accent); font-family: inherit; }
+  .link-btn:hover { color: var(--accent-ink); }
+  .link-btn.danger { color: var(--bad); }
+  .link-btn.danger:hover { color: #7d1c1c; }
+
+  .btn { border-radius: 7px; font-weight: 700; cursor: pointer; border: 1px solid transparent; transition: background .15s ease, border-color .15s ease, transform .05s ease; font-family: inherit; }
+  .btn:active { transform: translateY(1px); }
+  .btn-primary { background: var(--accent); color: #fff; padding: 10px 22px; font-size: 13.5px; }
+  .btn-primary:hover { background: var(--accent-ink); }
+  .btn-secondary { background: var(--surface); border: 1px solid var(--line); color: var(--ink); padding: 7px 14px; font-size: 12.5px; }
+  .btn-secondary:hover { border-color: var(--accent-soft-line); background: var(--accent-soft); }
+  .btn-block { width: 100%; text-align: center; }
+  .btn-sm { padding: 6px 12px; font-size: 12px; }
+  .add-row-btn { margin-top: 6px; }
+
+  .checkbox-line { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--ink-soft); }
+  .actions-right { display: flex; justify-content: flex-end; gap: 12px; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+  thead { background: var(--paper); text-align: left; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: var(--ink-soft); }
+  th, td { padding: 11px 16px; border-bottom: 1px solid var(--line-soft); }
+  td { font-variant-numeric: tabular-nums; }
+  tbody tr:hover { background: var(--accent-soft); }
+  .table-wrap { border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; overflow-x: auto; background: var(--surface); box-shadow: var(--shadow-sm); }
+  .empty-box { border: 1px dashed var(--line); background: var(--surface); border-radius: var(--radius); padding: 40px; text-align: center; color: var(--ink-soft); font-size: 13.5px; }
+
+  .badge { display: inline-flex; align-items: center; gap: 6px; border-radius: 999px; padding: 3px 11px 3px 8px; font-size: 11.5px; font-weight: 700; letter-spacing: .01em; white-space: nowrap; }
+  .badge::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
+  .badge.submitted { background: var(--warn-soft); color: var(--warn); }
+  .badge.in_progress { background: var(--info-soft); color: var(--info); }
+  .badge.completed { background: var(--good-soft); color: var(--good); }
+  .badge.approved { background: var(--good-soft); color: var(--good); }
+  .badge.rejected { background: var(--bad-soft); color: var(--bad); }
+  .badge.partially_approved { background: var(--info-soft); color: var(--info); }
+  .badge.decision-未決定 { background: var(--line-soft); color: var(--ink-soft); }
+  .badge.decision-承認 { background: var(--good-soft); color: var(--good); }
+  .badge.decision-却下 { background: var(--bad-soft); color: var(--bad); }
+  .badge.decision-金額変更 { background: var(--info-soft); color: var(--info); }
+
+  .banner-success { margin-bottom: 22px; border: 1px solid var(--good); background: var(--good-soft); color: var(--good); padding: 12px 16px; border-radius: 9px; font-size: 13.5px; font-weight: 600; }
+  .banner-error { margin-bottom: 16px; border: 1px solid var(--bad); background: var(--bad-soft); color: var(--bad); padding: 10px 14px; border-radius: 9px; font-size: 12.5px; font-weight: 600; }
+  .back-link { display: inline-flex; align-items: center; gap: 4px; margin-bottom: 16px; font-size: 13px; font-weight: 600; color: var(--ink-soft); text-decoration: none; }
+  .back-link:hover { color: var(--accent); }
+
+  .detail-title-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 22px; }
+
+  dl.info-grid { display: grid; gap: 14px; grid-template-columns: repeat(2, 1fr); margin: 14px 0 0; }
+  @media (min-width: 640px) { dl.info-grid.cols-3 { grid-template-columns: repeat(3, 1fr); } dl.info-grid.cols-4 { grid-template-columns: repeat(4, 1fr); } }
+  dl.info-grid dt { font-size: 11px; font-weight: 600; color: var(--ink-soft); letter-spacing: .01em; }
+  dl.info-grid dd { margin: 3px 0 0; font-size: 13.5px; font-variant-numeric: tabular-nums; white-space: pre-wrap; }
+
+  .item-detail-card { border: 1px solid var(--line); border-radius: 9px; padding: 16px; margin-bottom: 14px; background: var(--paper); }
+  .item-detail-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }
+  .item-detail-head .name { font-size: 13.5px; font-weight: 700; }
+
+  .decision-form { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px; margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--line-soft); }
+  .decision-form .field { display: flex; flex-direction: column; gap: 4px; }
+  .decision-form select, .decision-form input, .decision-form textarea { padding: 5px 8px; font-size: 12.5px; }
+  .decision-form input.price { width: 120px; }
+  .decision-form textarea { width: 260px; }
+
+  .notice { max-width: 1040px; margin: 0 auto; padding: 12px 24px 20px; font-size: 12.5px; line-height: 1.7; color: var(--ink-soft); }
+  .notice strong { color: var(--ink); }
+
+  .auth-card { width: 100%; max-width: 380px; border: 1px solid var(--line); background: var(--surface); border-radius: var(--radius); padding: 26px; box-shadow: var(--shadow-md); }
+  .auth-card h1 { font-size: 18px; }
+  .auth-tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin: 16px 0 20px; }
+  .auth-tab { flex: 1; text-align: center; padding: 9px 4px; font-size: 13px; font-weight: 700; color: var(--ink-soft); background: none; border: none; border-bottom: 2px solid transparent; margin-bottom: -1px; cursor: pointer; font-family: inherit; }
+  .auth-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+  .auth-form { display: flex; flex-direction: column; gap: 12px; }
 </style>
 </head>
 <body>
 <header>
   <div class="header-inner">
-    <a class="brand" data-link href="#/">WiSM特価申請システム（単体版）</a>
-    <nav>
-      <a data-link href="#/new">新規申請</a>
-      <a data-link href="#/requests">申請一覧・承認</a>
-    </nav>
+    <a class="brand" data-link href="#/"><span class="mark"></span>WiSM製品アプリ</a>
+    <nav id="nav-area"></nav>
   </div>
 </header>
 <main id="app"></main>
 <p class="notice">
-  ※このページはNode.js不要のスタンドアロン版です。データはこのブラウザ内（localStorage）にのみ保存され、他のPC・他のブラウザとは共有されません。操作感の確認用にご利用ください。
+  <strong>これはプレビュー用の単体デモです。</strong>Node.js不要でブラウザだけで動作し、データはこのブラウザの localStorage にのみ保存されます（他の人・他の端末とは共有されません）。ログイン情報も同じ仕組みで保存しているだけの簡易デモで、実運用のセキュリティはありません。操作感の確認用にご利用ください。
 </p>
 
 <script>
 (function () {
   "use strict";
 
-  var STORAGE_KEY = "wism_tokka_requests_v1";
-  var STATUS_LABEL = {
-    submitted: "申請中",
-    approved: "承認",
-    rejected: "却下",
-    partially_approved: "一部承認・金額変更あり"
-  };
+  // ================= Utilities =================
 
   function uid() {
     if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
     return "id-" + Date.now() + "-" + Math.random().toString(16).slice(2);
-  }
-
-  function loadRequests() {
-    try {
-      var raw = localStorage.getItem(STORAGE_KEY);
-      return raw ? JSON.parse(raw) : [];
-    } catch (e) {
-      return [];
-    }
-  }
-
-  function saveRequests(list) {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
-  }
-
-  function getRequest(id) {
-    return loadRequests().find(function (r) { return r.id === id; }) || null;
-  }
-
-  function upsertRequest(req) {
-    var list = loadRequests();
-    var idx = list.findIndex(function (r) { return r.id === req.id; });
-    if (idx >= 0) list[idx] = req; else list.unshift(req);
-    saveRequests(list);
-  }
-
-  function computeStatus(items) {
-    if (!items.length) return "submitted";
-    if (items.some(function (i) { return i.decision === "未決定"; })) return "submitted";
-    if (items.every(function (i) { return i.decision === "承認"; })) return "approved";
-    if (items.every(function (i) { return i.decision === "却下"; })) return "rejected";
-    return "partially_approved";
   }
 
   function esc(v) {
@@ -195,204 +229,395 @@
     return d.getFullYear() + "-" + m + "-" + day;
   }
 
-  // ---------- Views ----------
+  function makeStore(storageKey) {
+    return {
+      load: function () {
+        try {
+          var raw = localStorage.getItem(storageKey);
+          return raw ? JSON.parse(raw) : [];
+        } catch (e) {
+          return [];
+        }
+      },
+      save: function (list) { localStorage.setItem(storageKey, JSON.stringify(list)); },
+      get: function (id) { return this.load().find(function (r) { return r.id === id; }) || null; },
+      upsert: function (req) {
+        var list = this.load();
+        var idx = list.findIndex(function (r) { return r.id === req.id; });
+        if (idx >= 0) list[idx] = req; else list.unshift(req);
+        this.save(list);
+      }
+    };
+  }
 
-  var app = document.getElementById("app");
+  function setupRepeatableList(container, addBtn, templateFn, labelPrefix) {
+    function renumber() {
+      var rows = container.querySelectorAll("[data-item-row]");
+      rows.forEach(function (row, i) {
+        var titleEl = row.querySelector(".title");
+        if (titleEl) titleEl.textContent = labelPrefix + " " + (i + 1);
+        var btn = row.querySelector("[data-remove-item]");
+        if (btn) btn.style.visibility = rows.length > 1 ? "visible" : "hidden";
+      });
+    }
+    addBtn.addEventListener("click", function () {
+      var wrapper = document.createElement("div");
+      wrapper.innerHTML = templateFn(container.querySelectorAll("[data-item-row]").length);
+      container.appendChild(wrapper.firstElementChild);
+      renumber();
+    });
+    container.addEventListener("click", function (e) {
+      if (e.target.matches("[data-remove-item]")) {
+        var rows = container.querySelectorAll("[data-item-row]");
+        if (rows.length > 1) {
+          e.target.closest("[data-item-row]").remove();
+          renumber();
+        }
+      }
+    });
+    renumber();
+  }
 
-  function renderHome() {
-    app.innerHTML =
-      '<h1>WiSM商品 特別価格申請システム</h1>' +
-      '<p class="muted">営業から企画への特価申請を入力し、企画側が一覧で確認・承認できるアプリ（単体版）です。</p>' +
-      '<div class="cards-grid">' +
-        '<a class="card-link" data-link href="#/new">' +
-          '<h2>営業：新規特価申請</h2>' +
-          '<p class="muted" style="margin-top:8px;">店所情報・得意先情報・商品明細を入力して企画へ申請します。</p>' +
-        '</a>' +
-        '<a class="card-link" data-link href="#/requests">' +
-          '<h2>企画：申請一覧・承認</h2>' +
-          '<p class="muted" style="margin-top:8px;">届いている申請を一覧で確認し、商品ごとに承認・却下・金額変更を行います。</p>' +
-        '</a>' +
+  // ================= Auth =================
+
+  var USERS_KEY = "wism_app_users_v1";
+  var SESSION_KEY = "wism_app_session_v1";
+
+  function loadUsers() {
+    try {
+      var raw = localStorage.getItem(USERS_KEY);
+      return raw ? JSON.parse(raw) : [];
+    } catch (e) { return []; }
+  }
+  function saveUsers(list) { localStorage.setItem(USERS_KEY, JSON.stringify(list)); }
+  function findUserByEmployeeNumber(num) {
+    return loadUsers().find(function (u) { return u.employeeNumber === num; }) || null;
+  }
+  function registerUser(input) {
+    if (findUserByEmployeeNumber(input.employeeNumber)) {
+      throw new Error("この社員番号は既に登録されています。ログインしてください。");
+    }
+    var user = {
+      id: uid(),
+      employeeNumber: input.employeeNumber,
+      password: input.password,
+      name: input.name,
+      branchName: input.branchName,
+      role: input.role,
+      createdAt: new Date().toISOString()
+    };
+    var list = loadUsers();
+    list.push(user);
+    saveUsers(list);
+    return user;
+  }
+  function verifyLogin(num, password) {
+    var user = findUserByEmployeeNumber(num);
+    if (!user || user.password !== password) return null;
+    return user;
+  }
+  function setSession(userId) { localStorage.setItem(SESSION_KEY, userId); }
+  function clearSession() { localStorage.removeItem(SESSION_KEY); }
+  function getCurrentUser() {
+    var id = localStorage.getItem(SESSION_KEY);
+    if (!id) return null;
+    return loadUsers().find(function (u) { return u.id === id; }) || null;
+  }
+  function isPlanning(user) { return !!user && user.role === "企画"; }
+
+  // ================= Stores =================
+
+  var tokkaStore = makeStore("wism_tokka_requests_v1");
+  var fuguaiStore = makeStore("wism_fuguai_requests_v1");
+  var sampleStore = makeStore("wism_sample_requests_v1");
+
+  var TOKKA_STATUS_LABEL = {
+    submitted: "申請中", approved: "承認", rejected: "却下", partially_approved: "一部承認・金額変更あり"
+  };
+  var SIMPLE_STATUS_LABEL = { submitted: "申請中", in_progress: "対応中", completed: "完了", rejected: "却下" };
+  var DEFECT_CATEGORY_OPTIONS = ["異物混入", "汚れ", "包装の破損不備", "製品の破損不備", "その他"];
+  var SEND_DESTINATION_OPTIONS = ["メーカーに送付した", "営業企画に送付した", "WiSM企画に送付した", "回収済みだが未発送", "未回収"];
+  var UNIT_OPTIONS = ["個", "枚", "本", "巻", "箱", "双", "ケース"];
+  var DESTINATION_OPTIONS = ["北海道", "東京", "大阪", "九州"];
+  var PURPOSE_OPTIONS = ["切替提案", "新規開拓", "クレーム", "その他"];
+
+  function computeTokkaStatus(items) {
+    if (!items.length) return "submitted";
+    if (items.some(function (i) { return i.decision === "未決定"; })) return "submitted";
+    if (items.every(function (i) { return i.decision === "承認"; })) return "approved";
+    if (items.every(function (i) { return i.decision === "却下"; })) return "rejected";
+    return "partially_approved";
+  }
+
+  // ================= Header / Nav =================
+
+  function renderNav() {
+    var navArea = document.getElementById("nav-area");
+    var user = getCurrentUser();
+    if (!user) { navArea.innerHTML = ""; return; }
+    navArea.innerHTML =
+      '<a data-link href="#/">メインメニュー</a>' +
+      '<a data-link href="#/tokka/requests">特価申請</a>' +
+      '<a data-link href="#/fuguai/requests">不具合処理依頼</a>' +
+      '<a data-link href="#/sample/requests">サンプル申請</a>' +
+      '<span class="nav-divider"></span>' +
+      '<span class="nav-user">' + esc(user.name) + '（' + esc(user.employeeNumber) + '・' + esc(user.role) + '）</span>' +
+      '<button type="button" class="logout-btn" id="logout-btn">ログアウト</button>';
+    var logoutBtn = document.getElementById("logout-btn");
+    if (logoutBtn) {
+      logoutBtn.addEventListener("click", function () {
+        clearSession();
+        location.hash = "#/login";
+      });
+    }
+  }
+
+  // ================= Shared field templates =================
+
+  function fieldLabel(text, required) {
+    return '<label class="field-label">' + text + (required ? '<span class="required">*</span>' : '') + '</label>';
+  }
+
+  // ================= Router entry & mount helper =================
+
+  function mount(html) {
+    var appEl = document.getElementById("app");
+    appEl.innerHTML = html;
+    return appEl;
+  }
+
+  function renderAuthView() {
+    var mode = renderAuthView._mode || "login";
+
+    var html =
+      '<div class="auth-card">' +
+        '<h1>WiSM製品アプリ</h1>' +
+        '<p class="muted-xs" style="margin-top:4px;">社員番号とパスワードでログインしてください。</p>' +
+        '<div class="auth-tabs">' +
+          '<button type="button" class="auth-tab' + (mode === "login" ? " active" : "") + '" data-auth-tab="login">ログイン</button>' +
+          '<button type="button" class="auth-tab' + (mode === "register" ? " active" : "") + '" data-auth-tab="register">初めての方（新規登録）</button>' +
+        '</div>' +
+        '<div id="auth-error"></div>' +
+        (mode === "login"
+          ? '<form id="login-form" class="auth-form">' +
+              '<div>' + fieldLabel("社員番号", true) + '<input type="text" name="employeeNumber" required /></div>' +
+              '<div>' + fieldLabel("パスワード", true) + '<input type="password" name="password" required /></div>' +
+              '<button type="submit" class="btn btn-primary btn-block">ログイン</button>' +
+            '</form>'
+          : '<form id="register-form" class="auth-form">' +
+              '<div>' + fieldLabel("社員番号", true) + '<input type="text" name="employeeNumber" required /></div>' +
+              '<div>' + fieldLabel("氏名", true) + '<input type="text" name="name" required /></div>' +
+              '<div>' + fieldLabel("店所名", true) + '<input type="text" name="branchName" required /></div>' +
+              '<div>' + fieldLabel("権限", true) +
+                '<div class="radio-row">' +
+                  '<label><input type="radio" name="role" value="営業" checked /> 営業</label>' +
+                  '<label><input type="radio" name="role" value="企画" /> 企画</label>' +
+                '</div>' +
+              '</div>' +
+              '<div>' + fieldLabel("パスワード", true) + '<input type="password" name="password" required minlength="4" /></div>' +
+              '<div>' + fieldLabel("パスワード（確認）", true) + '<input type="password" name="passwordConfirm" required minlength="4" /></div>' +
+              '<button type="submit" class="btn btn-primary btn-block">登録してログイン</button>' +
+            '</form>') +
+      '</div>';
+
+    var appEl = document.getElementById("app");
+    appEl.className = "center-main";
+    appEl.innerHTML = html;
+
+    appEl.querySelectorAll("[data-auth-tab]").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        renderAuthView._mode = btn.getAttribute("data-auth-tab");
+        renderAuthView();
+      });
+    });
+
+    function showError(msg) {
+      document.getElementById("auth-error").innerHTML = '<p class="banner-error">' + esc(msg) + '</p>';
+    }
+
+    var loginForm = document.getElementById("login-form");
+    if (loginForm) {
+      loginForm.addEventListener("submit", function (e) {
+        e.preventDefault();
+        var fd = new FormData(loginForm);
+        var user = verifyLogin(String(fd.get("employeeNumber")).trim(), String(fd.get("password")));
+        if (!user) { showError("社員番号またはパスワードが違います"); return; }
+        setSession(user.id);
+        location.hash = "#/";
+        router();
+      });
+    }
+
+    var registerForm = document.getElementById("register-form");
+    if (registerForm) {
+      registerForm.addEventListener("submit", function (e) {
+        e.preventDefault();
+        var fd = new FormData(registerForm);
+        var password = String(fd.get("password"));
+        var passwordConfirm = String(fd.get("passwordConfirm"));
+        if (password !== passwordConfirm) { showError("パスワードが一致しません"); return; }
+        try {
+          var user = registerUser({
+            employeeNumber: String(fd.get("employeeNumber")).trim(),
+            name: String(fd.get("name")).trim(),
+            branchName: String(fd.get("branchName")).trim(),
+            role: String(fd.get("role")),
+            password: password
+          });
+          setSession(user.id);
+          location.hash = "#/";
+          router();
+        } catch (err) {
+          showError(err.message);
+        }
+      });
+    }
+  }
+
+  // ================= View: Main menu =================
+
+  function renderMainMenu() {
+    var user = getCurrentUser();
+    var appEl = document.getElementById("app");
+    appEl.className = "";
+    appEl.innerHTML =
+      '<h1>WiSM製品アプリ</h1>' +
+      '<p class="muted">' + esc(user.name) + ' さん（' + esc(user.branchName || "-") + '・' + esc(user.role) + '）としてログイン中です。</p>' +
+      '<div class="module-grid">' +
+        '<div class="module-card">' +
+          '<div class="eyebrow">特価</div><h2>特価申請</h2>' +
+          '<p class="muted" style="margin-top:6px;">WiSM商品の特別価格申請を入力・承認します。</p>' +
+          '<div class="actions">' +
+            '<a class="btn btn-primary btn-sm" data-link href="#/tokka/new">新規申請</a>' +
+            '<a class="btn btn-secondary btn-sm" data-link href="#/tokka/requests">処理状況一覧</a>' +
+          '</div>' +
+        '</div>' +
+        '<div class="module-card">' +
+          '<div class="eyebrow">不具合</div><h2>不具合処理依頼</h2>' +
+          '<p class="muted" style="margin-top:6px;">WiSM製品の不具合品について処理を依頼します。</p>' +
+          '<div class="actions">' +
+            '<a class="btn btn-primary btn-sm" data-link href="#/fuguai/new">新規依頼</a>' +
+            '<a class="btn btn-secondary btn-sm" data-link href="#/fuguai/requests">処理状況一覧</a>' +
+          '</div>' +
+        '</div>' +
+        '<div class="module-card">' +
+          '<div class="eyebrow">サンプル</div><h2>サンプル申請</h2>' +
+          '<p class="muted" style="margin-top:6px;">WiSM製品のサンプル提供を申請します。</p>' +
+          '<div class="actions">' +
+            '<a class="btn btn-primary btn-sm" data-link href="#/sample/new">新規申請</a>' +
+            '<a class="btn btn-secondary btn-sm" data-link href="#/sample/requests">処理状況一覧</a>' +
+          '</div>' +
+        '</div>' +
       '</div>';
   }
 
-  function itemRowTemplate(index) {
+  // ================= Module: 特価申請 (Tokka) =================
+
+  function tokkaItemRowTemplate(index) {
     return (
       '<div class="item-row" data-item-row>' +
-        '<div class="item-row-head">' +
-          '<span class="title">商品 ' + (index + 1) + '</span>' +
-          '<button type="button" class="link-btn danger" data-remove-item>この行を削除</button>' +
-        '</div>' +
+        '<div class="item-row-head"><span class="title">商品 ' + (index + 1) + '</span>' +
+          '<button type="button" class="link-btn danger" data-remove-item>この行を削除</button></div>' +
         '<div class="grid cols-4">' +
-          '<div><label class="field-label">商品名<span class="required">*</span></label>' +
-            '<input type="text" data-field="productName" required /></div>' +
-          '<div><label class="field-label">メーカーコード</label>' +
-            '<input type="text" data-field="makerCode" /></div>' +
-          '<div><label class="field-label">商品コード</label>' +
-            '<input type="text" data-field="productCode" /></div>' +
-          '<div><label class="field-label">商品略称</label>' +
-            '<input type="text" data-field="productAbbreviation" /></div>' +
-          '<div><label class="field-label">納入価</label>' +
-            '<input type="number" step="any" data-field="deliveryPrice" /></div>' +
-          '<div><label class="field-label">通常仕切<span class="required">*</span></label>' +
-            '<input type="number" step="any" data-field="standardWholesalePrice" required /></div>' +
-          '<div><label class="field-label">希望仕切額<span class="required">*</span></label>' +
-            '<input type="number" step="any" data-field="desiredWholesalePrice" required /></div>' +
-          '<div><label class="field-label">月平均販売量</label>' +
-            '<input type="text" placeholder="例: 10ケース" data-field="monthlyAvgSales" /></div>' +
-          '<div><label class="field-label">納入開始日</label>' +
-            '<input type="date" data-field="deliveryStartDate" /></div>' +
-          '<div><label class="field-label">終了日</label>' +
-            '<input type="date" data-field="endDate" /></div>' +
-          '<div><label class="field-label">特価登録もする？</label>' +
-            '<select data-field="registerSpecialPrice">' +
-              '<option value="登録する">登録する</option>' +
-              '<option value="申請のみ">申請のみ</option>' +
-            '</select></div>' +
+          '<div>' + fieldLabel("商品名", true) + '<input type="text" data-field="productName" required /></div>' +
+          '<div>' + fieldLabel("メーカーコード") + '<input type="text" data-field="makerCode" /></div>' +
+          '<div>' + fieldLabel("商品コード") + '<input type="text" data-field="productCode" /></div>' +
+          '<div>' + fieldLabel("商品略称") + '<input type="text" data-field="productAbbreviation" /></div>' +
+          '<div>' + fieldLabel("納入価") + '<input type="number" step="any" data-field="deliveryPrice" /></div>' +
+          '<div>' + fieldLabel("通常仕切", true) + '<input type="number" step="any" data-field="standardWholesalePrice" required /></div>' +
+          '<div>' + fieldLabel("希望仕切額", true) + '<input type="number" step="any" data-field="desiredWholesalePrice" required /></div>' +
+          '<div>' + fieldLabel("月平均販売量") + '<input type="text" placeholder="例: 10ケース" data-field="monthlyAvgSales" /></div>' +
+          '<div>' + fieldLabel("納入開始日") + '<input type="date" data-field="deliveryStartDate" /></div>' +
+          '<div>' + fieldLabel("終了日") + '<input type="date" data-field="endDate" /></div>' +
+          '<div>' + fieldLabel("特価登録もする？") +
+            '<select data-field="registerSpecialPrice"><option value="登録する">登録する</option><option value="申請のみ">申請のみ</option></select></div>' +
           '<div style="display:flex; align-items:flex-end; padding-bottom:6px;">' +
-            '<label class="checkbox-line"><input type="checkbox" data-field="existingSpecialPriceFlag" /> 同商品同得意先で特価登録済み</label>' +
-          '</div>' +
+            '<label class="checkbox-line"><input type="checkbox" data-field="existingSpecialPriceFlag" /> 同商品同得意先で特価登録済み</label></div>' +
         '</div>' +
       '</div>'
     );
-  }
-
-  function renumberItemRows(container) {
-    var rows = container.querySelectorAll("[data-item-row]");
-    rows.forEach(function (row, i) {
-      row.querySelector(".title").textContent = "商品 " + (i + 1);
-      var removeBtn = row.querySelector("[data-remove-item]");
-      removeBtn.style.visibility = rows.length > 1 ? "visible" : "hidden";
-    });
   }
 
   function customerCodeRowTemplate() {
     return (
       '<div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;" data-cc-row>' +
-        '<input type="text" data-cc-input maxlength="6" pattern="[0-9A-Za-z]{6}" ' +
-          'title="半角英数字6桁で入力してください" placeholder="例: JI7000" ' +
-          'style="max-width:140px; text-transform:uppercase;" />' +
-        '<span style="font-size:13px; color:var(--slate-500);">+ 00</span>' +
+        '<input type="text" data-cc-input maxlength="6" pattern="[0-9A-Za-z]{6}" title="半角英数字6桁で入力してください" placeholder="例: JI7000" style="max-width:140px; text-transform:uppercase;" />' +
+        '<span class="muted-xs">+ 00</span>' +
         '<button type="button" class="btn-secondary btn-sm" data-remove-cc>削除</button>' +
       '</div>'
     );
   }
 
-  function renderNewForm() {
-    app.innerHTML =
+  function renderTokkaNew() {
+    var user = getCurrentUser();
+    var appEl = mount(
       '<h1>WiSM商品 特別価格申請</h1>' +
       '<p class="muted" style="margin-bottom:24px;">入力して送信すると、企画側の一覧に申請が追加されます。</p>' +
-      '<form id="new-request-form">' +
-
+      '<form id="tokka-form">' +
       '<section class="panel"><h2>申請者情報</h2>' +
         '<div class="grid cols-3" style="margin-top:16px;">' +
-          '<div><label class="field-label">申請日<span class="required">*</span></label>' +
-            '<input type="date" name="applicationDate" required value="' + todayStr() + '" /></div>' +
-          '<div><label class="field-label">店所名<span class="required">*</span></label>' +
-            '<input type="text" name="branchName" required /></div>' +
-          '<div><label class="field-label">店所コード</label>' +
-            '<input type="text" name="branchCode" /></div>' +
-          '<div><label class="field-label">所属長名</label>' +
-            '<input type="text" name="supervisorName" /></div>' +
-          '<div><label class="field-label">担当者名<span class="required">*</span></label>' +
-            '<input type="text" name="staffName" required /></div>' +
-          '<div><label class="field-label">社員番号</label>' +
-            '<input type="text" name="employeeNumber" /></div>' +
-        '</div>' +
-      '</section>' +
-
+          '<div>' + fieldLabel("申請日", true) + '<input type="date" name="applicationDate" required value="' + todayStr() + '" /></div>' +
+          '<div>' + fieldLabel("店所名", true) + '<input type="text" name="branchName" required value="' + esc(user.branchName || "") + '" /></div>' +
+          '<div>' + fieldLabel("店所コード") + '<input type="text" name="branchCode" /></div>' +
+          '<div>' + fieldLabel("所属長名") + '<input type="text" name="supervisorName" /></div>' +
+          '<div>' + fieldLabel("担当者名", true) + '<input type="text" name="staffName" required value="' + esc(user.name || "") + '" /></div>' +
+          '<div>' + fieldLabel("社員番号") + '<input type="text" name="employeeNumber" value="' + esc(user.employeeNumber || "") + '" /></div>' +
+        '</div></section>' +
       '<section class="panel"><h2>得意先情報</h2>' +
         '<div class="grid" style="margin-top:16px;">' +
-          '<div><label class="field-label">得意先施設名<span class="required">*</span></label>' +
-            '<input type="text" name="customerFacilityName" required /></div>' +
-          '<div><label class="field-label">施設内の納入部所</label>' +
-            '<input type="text" name="deliveryDepartment" /></div>' +
+          '<div>' + fieldLabel("得意先施設名", true) + '<input type="text" name="customerFacilityName" required /></div>' +
+          '<div>' + fieldLabel("施設内の納入部所") + '<input type="text" name="deliveryDepartment" /></div>' +
         '</div>' +
-        '<div style="margin-top:16px;">' +
-          '<label class="field-label">得意先コード（先頭6桁）</label>' +
+        '<div style="margin-top:16px;">' + fieldLabel("得意先コード（先頭6桁）") +
           '<p class="muted-xs" style="margin:2px 0 8px;">半角英数字6桁で入力してください。末尾2桁には自動で「00」が付きます。</p>' +
           '<div id="cc-list">' + customerCodeRowTemplate() + '</div>' +
-          '<button type="button" class="link-btn" id="add-cc" style="color:var(--slate-600); font-weight:600;">+ 得意先コードを追加</button>' +
-        '</div>' +
-      '</section>' +
-
+          '<button type="button" class="link-btn" id="add-cc">+ 得意先コードを追加</button>' +
+        '</div></section>' +
       '<section class="panel"><h2>商品明細</h2>' +
         '<p class="muted-xs" style="margin-top:4px;">申請する商品を1行ずつ入力してください。行は自由に追加・削除できます。</p>' +
-        '<div id="item-list" style="margin-top:16px;">' + itemRowTemplate(0) + '</div>' +
-        '<button type="button" class="btn-secondary add-row-btn" id="add-item">+ 商品行を追加</button>' +
-      '</section>' +
-
+        '<div id="item-list" style="margin-top:16px;">' + tokkaItemRowTemplate(0) + '</div>' +
+        '<button type="button" class="btn-secondary add-row-btn" id="add-item">+ 商品行を追加</button></section>' +
       '<section class="panel"><h2>既納入品・競合提示製品情報（任意）</h2>' +
         '<div class="grid cols-3" style="margin-top:16px;">' +
-          '<div><label class="field-label">メーカー名</label><input type="text" name="competitorMakerName" /></div>' +
-          '<div><label class="field-label">商品名</label><input type="text" name="competitorProductName" /></div>' +
-          '<div><label class="field-label">商品コード</label><input type="text" name="competitorProductCode" /></div>' +
-          '<div><label class="field-label">JANコード</label><input type="text" name="competitorJanCode" /></div>' +
-          '<div><label class="field-label">仕入価格</label><input type="text" name="competitorPurchasePrice" /></div>' +
-          '<div><label class="field-label">納入価</label><input type="text" name="competitorDeliveryPrice" /></div>' +
-          '<div><label class="field-label">納入業者</label><input type="text" name="competitorVendor" /></div>' +
-        '</div>' +
-      '</section>' +
-
+          '<div>' + fieldLabel("メーカー名") + '<input type="text" name="competitorMakerName" /></div>' +
+          '<div>' + fieldLabel("商品名") + '<input type="text" name="competitorProductName" /></div>' +
+          '<div>' + fieldLabel("商品コード") + '<input type="text" name="competitorProductCode" /></div>' +
+          '<div>' + fieldLabel("JANコード") + '<input type="text" name="competitorJanCode" /></div>' +
+          '<div>' + fieldLabel("仕入価格") + '<input type="text" name="competitorPurchasePrice" /></div>' +
+          '<div>' + fieldLabel("納入価") + '<input type="text" name="competitorDeliveryPrice" /></div>' +
+          '<div>' + fieldLabel("納入業者") + '<input type="text" name="competitorVendor" /></div>' +
+        '</div></section>' +
       '<section class="panel"><h2>特価申請理由・特記事項</h2>' +
         '<div class="grid" style="margin-top:16px;">' +
-          '<div><label class="field-label">特価申請理由<span class="required">*</span></label>' +
-            '<select name="reasonType" required>' +
-              '<option value="" disabled selected>選択してください</option>' +
-              '<option value="新規">1. 新規</option>' +
-              '<option value="防衛">2. 防衛</option>' +
-              '<option value="自社既納入品の変更">3. 自社既納入品の変更</option>' +
-            '</select></div>' +
+          '<div>' + fieldLabel("特価申請理由", true) +
+            '<select name="reasonType" required><option value="" disabled selected>選択してください</option>' +
+              '<option value="新規">1. 新規</option><option value="防衛">2. 防衛</option><option value="自社既納入品の変更">3. 自社既納入品の変更</option></select></div>' +
         '</div>' +
-        '<div style="margin-top:16px;">' +
-          '<label class="field-label">その他特記事項（事前承認がある場合もこちらへ記入）</label>' +
-          '<textarea name="specialNotes" rows="3"></textarea>' +
-        '</div>' +
+        '<div style="margin-top:16px;">' + fieldLabel("その他特記事項（事前承認がある場合もこちらへ記入）") + '<textarea name="specialNotes" rows="3"></textarea></div>' +
       '</section>' +
-
       '<div class="actions-right"><button type="submit" class="btn btn-primary">企画へ申請する</button></div>' +
-      '</form>';
+      '</form>'
+    );
 
     var itemList = document.getElementById("item-list");
     var ccList = document.getElementById("cc-list");
 
-    document.getElementById("add-item").addEventListener("click", function () {
-      var wrapper = document.createElement("div");
-      wrapper.innerHTML = itemRowTemplate(itemList.children.length);
-      itemList.appendChild(wrapper.firstElementChild);
-      renumberItemRows(itemList);
-    });
+    setupRepeatableList(itemList, document.getElementById("add-item"), tokkaItemRowTemplate, "商品");
 
     document.getElementById("add-cc").addEventListener("click", function () {
       var wrapper = document.createElement("div");
       wrapper.innerHTML = customerCodeRowTemplate();
       ccList.appendChild(wrapper.firstElementChild);
     });
-
-    itemList.addEventListener("click", function (e) {
-      if (e.target.matches("[data-remove-item]")) {
-        var rows = itemList.querySelectorAll("[data-item-row]");
-        if (rows.length > 1) {
-          e.target.closest("[data-item-row]").remove();
-          renumberItemRows(itemList);
-        }
-      }
-    });
-
     ccList.addEventListener("click", function (e) {
-      if (e.target.matches("[data-remove-cc]")) {
-        e.target.closest("[data-cc-row]").remove();
-      }
+      if (e.target.matches("[data-remove-cc]")) e.target.closest("[data-cc-row]").remove();
     });
 
-    renumberItemRows(itemList);
-
-    document.getElementById("new-request-form").addEventListener("submit", function (e) {
+    document.getElementById("tokka-form").addEventListener("submit", function (e) {
       e.preventDefault();
       var form = e.target;
-
       var itemRows = itemList.querySelectorAll("[data-item-row]");
-      var items = [];
-      var hasError = false;
+      var items = []; var hasError = false;
       itemRows.forEach(function (row) {
         var get = function (f) { return row.querySelector('[data-field="' + f + '"]'); };
         var productName = get("productName").value.trim();
@@ -403,128 +628,83 @@
         if (!anyValue) return;
         if (!productName || standard === "" || desired === "") { hasError = true; return; }
         items.push({
-          id: uid(),
-          productName: productName,
-          makerCode: get("makerCode").value.trim(),
-          productCode: get("productCode").value.trim(),
-          deliveryPrice: numOrNull(get("deliveryPrice").value),
-          standardWholesalePrice: numOrNull(standard),
-          desiredWholesalePrice: numOrNull(desired),
-          monthlyAvgSales: get("monthlyAvgSales").value.trim(),
-          existingSpecialPriceFlag: get("existingSpecialPriceFlag").checked,
-          deliveryStartDate: get("deliveryStartDate").value,
-          registerSpecialPrice: get("registerSpecialPrice").value,
-          endDate: get("endDate").value,
-          productAbbreviation: get("productAbbreviation").value.trim(),
-          decision: "未決定",
-          decidedWholesalePrice: null
+          id: uid(), productName: productName, makerCode: get("makerCode").value.trim(), productCode: get("productCode").value.trim(),
+          deliveryPrice: numOrNull(get("deliveryPrice").value), standardWholesalePrice: numOrNull(standard), desiredWholesalePrice: numOrNull(desired),
+          monthlyAvgSales: get("monthlyAvgSales").value.trim(), existingSpecialPriceFlag: get("existingSpecialPriceFlag").checked,
+          deliveryStartDate: get("deliveryStartDate").value, registerSpecialPrice: get("registerSpecialPrice").value,
+          endDate: get("endDate").value, productAbbreviation: get("productAbbreviation").value.trim(),
+          decision: "未決定", decidedWholesalePrice: null
         });
       });
-
       if (!form.reportValidity()) return;
-      if (hasError || items.length === 0) {
-        alert("商品明細を1件以上、商品名・通常仕切・希望仕切額を入力してください。");
-        return;
-      }
+      if (hasError || items.length === 0) { alert("商品明細を1件以上、商品名・通常仕切・希望仕切額を入力してください。"); return; }
 
-      var customerCodeInputs = Array.prototype.filter.call(
-        ccList.querySelectorAll("[data-cc-input]"),
-        function (el) { return el.value.trim() !== ""; }
-      );
-      var invalidCode = customerCodeInputs.some(function (el) {
-        return !/^[0-9A-Za-z]{6}$/.test(el.value.trim());
-      });
-      if (invalidCode) {
-        alert("得意先コードは半角英数字6桁で入力してください。");
-        return;
-      }
-      var customerCodes = customerCodeInputs.map(function (el) {
-        return el.value.trim().toUpperCase() + "00";
-      });
+      var ccInputs = Array.prototype.filter.call(ccList.querySelectorAll("[data-cc-input]"), function (el) { return el.value.trim() !== ""; });
+      if (ccInputs.some(function (el) { return !/^[0-9A-Za-z]{6}$/.test(el.value.trim()); })) { alert("得意先コードは半角英数字6桁で入力してください。"); return; }
+      var customerCodes = ccInputs.map(function (el) { return el.value.trim().toUpperCase() + "00"; });
 
       var fd = new FormData(form);
       var req = {
-        id: uid(),
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        applicationDate: fd.get("applicationDate"),
-        branchName: fd.get("branchName"),
-        branchCode: fd.get("branchCode"),
-        supervisorName: fd.get("supervisorName"),
-        staffName: fd.get("staffName"),
-        employeeNumber: fd.get("employeeNumber"),
-        customerFacilityName: fd.get("customerFacilityName"),
-        deliveryDepartment: fd.get("deliveryDepartment"),
-        customerCodes: customerCodes,
-        competitorMakerName: fd.get("competitorMakerName"),
-        competitorProductName: fd.get("competitorProductName"),
-        competitorProductCode: fd.get("competitorProductCode"),
-        competitorJanCode: fd.get("competitorJanCode"),
-        competitorPurchasePrice: fd.get("competitorPurchasePrice"),
-        competitorDeliveryPrice: fd.get("competitorDeliveryPrice"),
-        competitorVendor: fd.get("competitorVendor"),
-        reasonType: fd.get("reasonType"),
-        specialNotes: fd.get("specialNotes"),
-        planningRemarks: "",
-        status: "submitted",
-        items: items
+        id: uid(), createdBy: user.id, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(),
+        applicationDate: fd.get("applicationDate"), branchName: fd.get("branchName"), branchCode: fd.get("branchCode"),
+        supervisorName: fd.get("supervisorName"), staffName: fd.get("staffName"), employeeNumber: fd.get("employeeNumber"),
+        customerFacilityName: fd.get("customerFacilityName"), deliveryDepartment: fd.get("deliveryDepartment"), customerCodes: customerCodes,
+        competitorMakerName: fd.get("competitorMakerName"), competitorProductName: fd.get("competitorProductName"),
+        competitorProductCode: fd.get("competitorProductCode"), competitorJanCode: fd.get("competitorJanCode"),
+        competitorPurchasePrice: fd.get("competitorPurchasePrice"), competitorDeliveryPrice: fd.get("competitorDeliveryPrice"),
+        competitorVendor: fd.get("competitorVendor"), reasonType: fd.get("reasonType"), specialNotes: fd.get("specialNotes"),
+        planningRemarks: "", status: "submitted", items: items
       };
-
-      upsertRequest(req);
-      location.hash = "#/requests/" + req.id + "?submitted=1";
+      tokkaStore.upsert(req);
+      location.hash = "#/tokka/requests/" + req.id + "?submitted=1";
     });
   }
 
-  function renderRequestsList() {
-    var requests = loadRequests().slice().sort(function (a, b) {
-      return new Date(b.createdAt) - new Date(a.createdAt);
-    });
+  function renderTokkaList() {
+    var user = getCurrentUser();
+    var all = tokkaStore.load().slice().sort(function (a, b) { return new Date(b.createdAt) - new Date(a.createdAt); });
+    var requests = isPlanning(user) ? all : all.filter(function (r) { return r.createdBy === user.id; });
 
     var rowsHtml = requests.map(function (r) {
       return (
         '<tr>' +
-          '<td><a data-link href="#/requests/' + r.id + '" style="color:inherit; text-decoration:none;">' + esc(r.applicationDate || "-") + '</a></td>' +
-          '<td><a data-link href="#/requests/' + r.id + '" style="color:inherit; text-decoration:none;">' + esc(r.branchName || "-") + '</a></td>' +
+          '<td><a data-link href="#/tokka/requests/' + r.id + '" style="color:inherit; text-decoration:none;">' + esc(r.applicationDate || "-") + '</a></td>' +
+          '<td><a data-link href="#/tokka/requests/' + r.id + '" style="color:inherit; text-decoration:none;">' + esc(r.branchName || "-") + '</a></td>' +
           '<td>' + esc(r.staffName || "-") + '</td>' +
           '<td>' + esc(r.customerFacilityName || "-") + '</td>' +
           '<td>' + r.items.length + '</td>' +
-          '<td><span class="badge ' + r.status + '">' + STATUS_LABEL[r.status] + '</span></td>' +
+          '<td><span class="badge ' + r.status + '">' + TOKKA_STATUS_LABEL[r.status] + '</span></td>' +
         '</tr>'
       );
     }).join("");
 
-    app.innerHTML =
+    mount(
       '<div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:24px; flex-wrap:wrap; gap:8px;">' +
-        '<div><h1>申請一覧</h1><p class="muted">営業から届いた特価申請です。クリックすると詳細・承認画面へ移動します。</p></div>' +
-        '<a data-link href="#/new" class="btn btn-primary" style="text-decoration:none; display:inline-block;">+ 新規申請</a>' +
+        '<div><h1>特価申請 処理状況一覧</h1><p class="muted">' + (isPlanning(user) ? "営業から届いた特価申請です。クリックすると詳細・承認画面へ移動します。" : "あなたが申請した特価申請の一覧です。") + '</p></div>' +
+        '<a data-link href="#/tokka/new" class="btn btn-primary" style="text-decoration:none; display:inline-block;">+ 新規申請</a>' +
       '</div>' +
       (requests.length === 0
         ? '<div class="empty-box">まだ申請がありません。</div>'
-        : '<div class="table-wrap"><table><thead><tr>' +
-            '<th>申請日</th><th>店所名</th><th>担当者名</th><th>得意先施設名</th><th>商品数</th><th>ステータス</th>' +
-          '</tr></thead><tbody>' + rowsHtml + '</tbody></table></div>');
+        : '<div class="table-wrap"><table><thead><tr><th>申請日</th><th>店所名</th><th>担当者名</th><th>得意先施設名</th><th>商品数</th><th>ステータス</th></tr></thead><tbody>' + rowsHtml + '</tbody></table></div>')
+    );
   }
 
-  function decisionBadgeClass(decision) {
-    return "badge decision-" + decision;
-  }
+  function decisionBadgeClass(decision) { return "badge decision-" + decision; }
 
-  function renderRequestDetail(id, showSubmitted) {
-    var req = getRequest(id);
-    if (!req) {
-      app.innerHTML = '<div class="empty-box">申請が見つかりませんでした。</div>';
-      return;
+  function renderTokkaDetail(id, showSubmitted) {
+    var user = getCurrentUser();
+    var req = tokkaStore.get(id);
+    if (!req) { mount('<div class="empty-box">申請が見つかりませんでした。</div>'); return; }
+    if (!isPlanning(user) && req.createdBy !== user.id) {
+      mount('<div class="banner-error">この申請を閲覧する権限がありません。</div>'); return;
     }
 
     var itemsHtml = req.items.map(function (item, idx) {
-      var discount = (item.standardWholesalePrice !== null && item.desiredWholesalePrice !== null)
-        ? item.standardWholesalePrice - item.desiredWholesalePrice : null;
+      var discount = (item.standardWholesalePrice !== null && item.desiredWholesalePrice !== null) ? item.standardWholesalePrice - item.desiredWholesalePrice : null;
       return (
         '<div class="item-detail-card">' +
-          '<div class="item-detail-head">' +
-            '<span class="name">商品 ' + (idx + 1) + ': ' + esc(item.productName || "-") + '</span>' +
-            '<span class="' + decisionBadgeClass(item.decision) + '">' + esc(item.decision) + '</span>' +
-          '</div>' +
+          '<div class="item-detail-head"><span class="name">商品 ' + (idx + 1) + ': ' + esc(item.productName || "-") + '</span>' +
+            '<span class="' + decisionBadgeClass(item.decision) + '">' + esc(item.decision) + '</span></div>' +
           '<dl class="info-grid cols-4">' +
             '<div><dt>メーカーコード</dt><dd>' + esc(item.makerCode || "-") + '</dd></div>' +
             '<div><dt>商品コード</dt><dd>' + esc(item.productCode || "-") + '</dd></div>' +
@@ -539,106 +719,554 @@
             '<div><dt>特価登録もする？</dt><dd>' + esc(item.registerSpecialPrice || "-") + '</dd></div>' +
             '<div><dt>同商品同得意先で特価登録済み</dt><dd>' + (item.existingSpecialPriceFlag ? "はい" : "いいえ") + '</dd></div>' +
           '</dl>' +
-          '<div class="decision-form" data-decision-form data-item-id="' + item.id + '">' +
-            '<div class="field"><label class="field-label">判定</label>' +
-              '<select data-decision>' +
-                ["未決定","承認","却下","金額変更"].map(function (d) {
-                  return '<option value="' + d + '"' + (d === item.decision ? " selected" : "") + '>' + d + '</option>';
-                }).join("") +
-              '</select></div>' +
-            '<div class="field"><label class="field-label">決定仕切額</label>' +
-              '<input type="number" step="any" class="price" data-decided-price value="' + (item.decidedWholesalePrice ?? "") + '" /></div>' +
-            '<button type="button" class="btn-secondary btn-sm" data-update-decision>更新</button>' +
-          '</div>' +
+          (isPlanning(user)
+            ? '<div class="decision-form" data-decision-form data-item-id="' + item.id + '">' +
+                '<div class="field"><label class="field-label">判定</label><select data-decision>' +
+                  ["未決定","承認","却下","金額変更"].map(function (d) { return '<option value="' + d + '"' + (d === item.decision ? " selected" : "") + '>' + d + '</option>'; }).join("") +
+                '</select></div>' +
+                '<div class="field"><label class="field-label">決定仕切額</label><input type="number" step="any" class="price" data-decided-price value="' + (item.decidedWholesalePrice ?? "") + '" /></div>' +
+                '<button type="button" class="btn-secondary btn-sm" data-update-decision>更新</button>' +
+              '</div>'
+            : '') +
         '</div>'
       );
     }).join("");
 
-    app.innerHTML =
-      '<a class="back-link" data-link href="#/requests">← 申請一覧へ戻る</a>' +
+    mount(
+      '<a class="back-link" data-link href="#/tokka/requests">← 申請一覧へ戻る</a>' +
       (showSubmitted ? '<div class="banner-success">申請を送信しました。企画側の確認をお待ちください。</div>' : '') +
-      '<div class="detail-title-row"><h1>特価申請詳細</h1><span class="badge ' + req.status + '">' + STATUS_LABEL[req.status] + '</span></div>' +
-
-      '<section class="panel"><h2>申請者情報</h2>' +
-        '<dl class="info-grid cols-3">' +
-          '<div><dt>申請日</dt><dd>' + esc(req.applicationDate || "-") + '</dd></div>' +
-          '<div><dt>店所名</dt><dd>' + esc(req.branchName || "-") + '</dd></div>' +
-          '<div><dt>店所コード</dt><dd>' + esc(req.branchCode || "-") + '</dd></div>' +
-          '<div><dt>所属長名</dt><dd>' + esc(req.supervisorName || "-") + '</dd></div>' +
-          '<div><dt>担当者名</dt><dd>' + esc(req.staffName || "-") + '</dd></div>' +
-          '<div><dt>社員番号</dt><dd>' + esc(req.employeeNumber || "-") + '</dd></div>' +
-        '</dl>' +
-      '</section>' +
-
-      '<section class="panel"><h2>得意先情報</h2>' +
-        '<dl class="info-grid cols-3">' +
-          '<div><dt>得意先施設名</dt><dd>' + esc(req.customerFacilityName || "-") + '</dd></div>' +
-          '<div><dt>施設内の納入部所</dt><dd>' + esc(req.deliveryDepartment || "-") + '</dd></div>' +
-          '<div><dt>得意先コード</dt><dd>' + esc(req.customerCodes && req.customerCodes.length ? req.customerCodes.join(", ") : "-") + '</dd></div>' +
-        '</dl>' +
-      '</section>' +
-
-      '<section class="panel"><h2>商品明細</h2>' +
-        '<p class="muted-xs" style="margin-top:4px;">企画担当者はここで各商品の承認・却下・金額変更を行えます。</p>' +
-        '<div style="margin-top:16px;">' + itemsHtml + '</div>' +
-      '</section>' +
-
-      '<section class="panel"><h2>既納入品・競合提示製品情報</h2>' +
-        '<dl class="info-grid cols-4">' +
-          '<div><dt>メーカー名</dt><dd>' + esc(req.competitorMakerName || "-") + '</dd></div>' +
-          '<div><dt>商品名</dt><dd>' + esc(req.competitorProductName || "-") + '</dd></div>' +
-          '<div><dt>商品コード</dt><dd>' + esc(req.competitorProductCode || "-") + '</dd></div>' +
-          '<div><dt>JANコード</dt><dd>' + esc(req.competitorJanCode || "-") + '</dd></div>' +
-          '<div><dt>仕入価格</dt><dd>' + esc(req.competitorPurchasePrice || "-") + '</dd></div>' +
-          '<div><dt>納入価</dt><dd>' + esc(req.competitorDeliveryPrice || "-") + '</dd></div>' +
-          '<div><dt>納入業者</dt><dd>' + esc(req.competitorVendor || "-") + '</dd></div>' +
-        '</dl>' +
-      '</section>' +
-
-      '<section class="panel"><h2>特価申請理由・特記事項</h2>' +
-        '<dl class="info-grid" style="grid-template-columns:1fr;">' +
-          '<div><dt>特価申請理由</dt><dd>' + esc(req.reasonType || "-") + '</dd></div>' +
-          '<div><dt>その他特記事項</dt><dd>' + esc(req.specialNotes || "-") + '</dd></div>' +
-        '</dl>' +
-      '</section>' +
-
+      '<div class="detail-title-row"><h1>特価申請詳細</h1><span class="badge ' + req.status + '">' + TOKKA_STATUS_LABEL[req.status] + '</span></div>' +
+      '<section class="panel"><h2>申請者情報</h2><dl class="info-grid cols-3">' +
+        '<div><dt>申請日</dt><dd>' + esc(req.applicationDate || "-") + '</dd></div>' +
+        '<div><dt>店所名</dt><dd>' + esc(req.branchName || "-") + '</dd></div>' +
+        '<div><dt>店所コード</dt><dd>' + esc(req.branchCode || "-") + '</dd></div>' +
+        '<div><dt>所属長名</dt><dd>' + esc(req.supervisorName || "-") + '</dd></div>' +
+        '<div><dt>担当者名</dt><dd>' + esc(req.staffName || "-") + '</dd></div>' +
+        '<div><dt>社員番号</dt><dd>' + esc(req.employeeNumber || "-") + '</dd></div>' +
+      '</dl></section>' +
+      '<section class="panel"><h2>得意先情報</h2><dl class="info-grid cols-3">' +
+        '<div><dt>得意先施設名</dt><dd>' + esc(req.customerFacilityName || "-") + '</dd></div>' +
+        '<div><dt>施設内の納入部所</dt><dd>' + esc(req.deliveryDepartment || "-") + '</dd></div>' +
+        '<div><dt>得意先コード</dt><dd>' + esc(req.customerCodes && req.customerCodes.length ? req.customerCodes.join(", ") : "-") + '</dd></div>' +
+      '</dl></section>' +
+      '<section class="panel"><h2>商品明細</h2><p class="muted-xs" style="margin-top:4px;">企画担当者はここで各商品の承認・却下・金額変更を行えます。</p>' +
+        '<div style="margin-top:16px;">' + itemsHtml + '</div></section>' +
+      '<section class="panel"><h2>既納入品・競合提示製品情報</h2><dl class="info-grid cols-4">' +
+        '<div><dt>メーカー名</dt><dd>' + esc(req.competitorMakerName || "-") + '</dd></div>' +
+        '<div><dt>商品名</dt><dd>' + esc(req.competitorProductName || "-") + '</dd></div>' +
+        '<div><dt>商品コード</dt><dd>' + esc(req.competitorProductCode || "-") + '</dd></div>' +
+        '<div><dt>JANコード</dt><dd>' + esc(req.competitorJanCode || "-") + '</dd></div>' +
+        '<div><dt>仕入価格</dt><dd>' + esc(req.competitorPurchasePrice || "-") + '</dd></div>' +
+        '<div><dt>納入価</dt><dd>' + esc(req.competitorDeliveryPrice || "-") + '</dd></div>' +
+        '<div><dt>納入業者</dt><dd>' + esc(req.competitorVendor || "-") + '</dd></div>' +
+      '</dl></section>' +
+      '<section class="panel"><h2>特価申請理由・特記事項</h2><dl class="info-grid" style="grid-template-columns:1fr;">' +
+        '<div><dt>特価申請理由</dt><dd>' + esc(req.reasonType || "-") + '</dd></div>' +
+        '<div><dt>その他特記事項</dt><dd>' + esc(req.specialNotes || "-") + '</dd></div>' +
+      '</dl></section>' +
       '<section class="panel"><h2>企画側 備考</h2>' +
-        '<div style="margin-top:12px;">' +
-          '<textarea id="planning-remarks" rows="3">' + esc(req.planningRemarks || "") + '</textarea>' +
-          '<button type="button" class="btn-secondary" style="margin-top:8px;" id="save-remarks">備考を保存</button>' +
-        '</div>' +
-      '</section>';
+        (isPlanning(user)
+          ? '<div style="margin-top:12px;"><textarea id="planning-remarks" rows="3">' + esc(req.planningRemarks || "") + '</textarea>' +
+            '<button type="button" class="btn-secondary" style="margin-top:8px;" id="save-remarks">備考を保存</button></div>'
+          : '<p class="muted" style="margin-top:10px;">' + esc(req.planningRemarks || "（まだ記入がありません）") + '</p>') +
+      '</section>'
+    );
 
-    app.querySelectorAll("[data-decision-form]").forEach(function (formEl) {
+    document.querySelectorAll("[data-decision-form]").forEach(function (formEl) {
       formEl.querySelector("[data-update-decision]").addEventListener("click", function () {
         var itemId = formEl.getAttribute("data-item-id");
         var decision = formEl.querySelector("[data-decision]").value;
         var priceVal = formEl.querySelector("[data-decided-price]").value;
-
-        var current = getRequest(id);
+        var current = tokkaStore.get(id);
         var item = current.items.find(function (it) { return it.id === itemId; });
-        item.decision = decision;
-        item.decidedWholesalePrice = numOrNull(priceVal);
-        current.status = computeStatus(current.items);
-        current.updatedAt = new Date().toISOString();
-        upsertRequest(current);
-        renderRequestDetail(id, false);
+        item.decision = decision; item.decidedWholesalePrice = numOrNull(priceVal);
+        current.status = computeTokkaStatus(current.items); current.updatedAt = new Date().toISOString();
+        tokkaStore.upsert(current);
+        renderTokkaDetail(id, false);
       });
     });
-
     var saveBtn = document.getElementById("save-remarks");
     if (saveBtn) {
       saveBtn.addEventListener("click", function () {
-        var current = getRequest(id);
+        var current = tokkaStore.get(id);
         current.planningRemarks = document.getElementById("planning-remarks").value;
         current.updatedAt = new Date().toISOString();
-        upsertRequest(current);
-        renderRequestDetail(id, false);
+        tokkaStore.upsert(current);
+        renderTokkaDetail(id, false);
       });
     }
   }
 
+  // ================= Module: 不具合処理依頼 (Fuguai) =================
+
+  function fuguaiItemRowTemplate(index) {
+    return (
+      '<div class="item-row" data-item-row>' +
+        '<div class="item-row-head"><span class="title">商品 ' + (index + 1) + '</span>' +
+          '<button type="button" class="link-btn danger" data-remove-item>この行を削除</button></div>' +
+        '<div class="grid cols-4">' +
+          '<div>' + fieldLabel("メーカーコード") + '<input type="text" data-field="makerCode" /></div>' +
+          '<div>' + fieldLabel("商品コード") + '<input type="text" data-field="productCode" /></div>' +
+          '<div>' + fieldLabel("商品名", true) + '<input type="text" data-field="productName" required /></div>' +
+          '<div>' + fieldLabel("梱包単位") + '<input type="text" data-field="packingUnit" /></div>' +
+          '<div>' + fieldLabel("数量") + '<input type="text" data-field="quantity" /></div>' +
+          '<div>' + fieldLabel("ロットNO.") + '<input type="text" data-field="lotNo" /></div>' +
+          '<div>' + fieldLabel("不具合内容") +
+            '<select data-field="defectCategory"><option value="" disabled selected>選択してください</option>' +
+              DEFECT_CATEGORY_OPTIONS.map(function (c) { return '<option value="' + c + '">' + c + '</option>'; }).join("") +
+            '</select></div>' +
+        '</div>' +
+        '<div style="margin-top:12px;">' + fieldLabel("不具合内容詳細") + '<textarea data-field="defectDetail" rows="2"></textarea></div>' +
+      '</div>'
+    );
+  }
+
+  function renderFuguaiNew() {
+    var user = getCurrentUser();
+    mount(
+      '<h1>WiSM製品 不具合品 処理依頼</h1>' +
+      '<p class="muted" style="margin-bottom:24px;">入力して送信すると、企画側の一覧に依頼が追加されます。</p>' +
+      '<form id="fuguai-form">' +
+      '<section class="panel"><h2>依頼者情報</h2>' +
+        '<div class="grid cols-3" style="margin-top:16px;">' +
+          '<div>' + fieldLabel("依頼日", true) + '<input type="date" name="requestDate" required value="' + todayStr() + '" /></div>' +
+          '<div>' + fieldLabel("店所名", true) + '<input type="text" name="branchName" required value="' + esc(user.branchName || "") + '" /></div>' +
+          '<div>' + fieldLabel("店所コード") + '<input type="text" name="branchCode" /></div>' +
+          '<div>' + fieldLabel("所属長名") + '<input type="text" name="supervisorName" /></div>' +
+          '<div>' + fieldLabel("担当者名", true) + '<input type="text" name="staffName" required value="' + esc(user.name || "") + '" /></div>' +
+          '<div>' + fieldLabel("社員番号") + '<input type="text" name="employeeNumber" value="' + esc(user.employeeNumber || "") + '" /></div>' +
+        '</div></section>' +
+      '<section class="panel"><h2>得意先情報</h2>' +
+        '<div class="grid cols-4" style="margin-top:16px;">' +
+          '<div>' + fieldLabel("得意先施設名", true) + '<input type="text" name="customerFacilityName" required /></div>' +
+          '<div>' + fieldLabel("得意先コード") + '<input type="text" name="customerCode" placeholder="例: IK919100" /></div>' +
+          '<div>' + fieldLabel("部署") + '<input type="text" name="department" /></div>' +
+          '<div>' + fieldLabel("ご担当者名") + '<input type="text" name="contactPerson" /></div>' +
+        '</div></section>' +
+      '<section class="panel"><h2>商品明細・不具合内容</h2>' +
+        '<p class="muted-xs" style="margin-top:4px;">不具合のあった商品を1行ずつ入力してください。行は自由に追加・削除できます。</p>' +
+        '<div id="item-list" style="margin-top:16px;">' + fuguaiItemRowTemplate(0) + '</div>' +
+        '<button type="button" class="btn-secondary add-row-btn" id="add-item">+ 商品行を追加</button></section>' +
+      '<section class="panel"><h2>不具合品送付先</h2>' +
+        '<div class="radio-row">' +
+          SEND_DESTINATION_OPTIONS.map(function (opt, i) { return '<label><input type="radio" name="sendDestination" value="' + opt + '"' + (i === 0 ? " checked" : "") + ' /> ' + opt + '</label>'; }).join("") +
+        '</div>' +
+        '<div style="margin-top:16px;">' + fieldLabel("不具合品についての特記事項") + '<textarea name="sendDestinationNotes" rows="2"></textarea></div>' +
+      '</section>' +
+      '<section class="panel"><h2>依頼内容</h2>' +
+        '<label class="checkbox-line" style="font-size:13.5px; color:var(--ink);"><input type="checkbox" name="needsWrittenResponse" /> ① メーカーから文書による回答が必要</label>' +
+        '<label class="checkbox-line" style="font-size:13.5px; color:var(--ink); margin-top:10px;"><input type="checkbox" name="needsReplacement" id="needs-replacement" /> ② 代替品が必要</label>' +
+        '<div id="replacement-fields" class="grid cols-4" style="margin-top:12px; margin-left:24px; display:none;">' +
+          '<div>' + fieldLabel("数量") + '<input type="text" name="replacementQuantity" /></div>' +
+          '<div>' + fieldLabel("単位") + '<select name="replacementUnit"><option value="" disabled selected>選択してください</option>' +
+            UNIT_OPTIONS.map(function (u) { return '<option value="' + u + '">' + u + '</option>'; }).join("") + '</select></div>' +
+        '</div>' +
+      '</section>' +
+      '<section class="panel"><h2>その他</h2><textarea name="otherNotes" rows="3"></textarea></section>' +
+      '<div class="actions-right"><button type="submit" class="btn btn-primary">企画へ依頼する</button></div>' +
+      '</form>'
+    );
+
+    var itemList = document.getElementById("item-list");
+    setupRepeatableList(itemList, document.getElementById("add-item"), fuguaiItemRowTemplate, "商品");
+
+    var needsReplacement = document.getElementById("needs-replacement");
+    var replacementFields = document.getElementById("replacement-fields");
+    needsReplacement.addEventListener("change", function () {
+      replacementFields.style.display = needsReplacement.checked ? "grid" : "none";
+    });
+
+    document.getElementById("fuguai-form").addEventListener("submit", function (e) {
+      e.preventDefault();
+      var form = e.target;
+      var itemRows = itemList.querySelectorAll("[data-item-row]");
+      var items = []; var hasError = false;
+      itemRows.forEach(function (row) {
+        var get = function (f) { return row.querySelector('[data-field="' + f + '"]'); };
+        var productName = get("productName").value.trim();
+        var anyValue = ["makerCode","productCode","productName","quantity","lotNo","defectDetail"].some(function (f) { return get(f).value.trim() !== ""; });
+        if (!anyValue) return;
+        if (!productName) { hasError = true; return; }
+        items.push({
+          id: uid(), makerCode: get("makerCode").value.trim(), productCode: get("productCode").value.trim(), productName: productName,
+          packingUnit: get("packingUnit").value.trim(), quantity: get("quantity").value.trim(), lotNo: get("lotNo").value.trim(),
+          defectCategory: get("defectCategory").value, defectDetail: get("defectDetail").value.trim()
+        });
+      });
+      if (!form.reportValidity()) return;
+      if (hasError || items.length === 0) { alert("商品明細を1件以上、商品名を入力してください。"); return; }
+
+      var fd = new FormData(form);
+      var req = {
+        id: uid(), createdBy: user.id, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(),
+        requestDate: fd.get("requestDate"), branchName: fd.get("branchName"), branchCode: fd.get("branchCode"),
+        supervisorName: fd.get("supervisorName"), staffName: fd.get("staffName"), employeeNumber: fd.get("employeeNumber"),
+        customerFacilityName: fd.get("customerFacilityName"), customerCode: fd.get("customerCode"), department: fd.get("department"),
+        contactPerson: fd.get("contactPerson"), sendDestination: fd.get("sendDestination"), sendDestinationNotes: fd.get("sendDestinationNotes"),
+        needsWrittenResponse: fd.get("needsWrittenResponse") === "on", needsReplacement: fd.get("needsReplacement") === "on",
+        replacementQuantity: fd.get("replacementQuantity"), replacementUnit: fd.get("replacementUnit"), otherNotes: fd.get("otherNotes"),
+        planningComment: "", status: "submitted", items: items
+      };
+      fuguaiStore.upsert(req);
+      location.hash = "#/fuguai/requests/" + req.id + "?submitted=1";
+    });
+  }
+
+  function renderFuguaiList() {
+    var user = getCurrentUser();
+    var all = fuguaiStore.load().slice().sort(function (a, b) { return new Date(b.createdAt) - new Date(a.createdAt); });
+    var requests = isPlanning(user) ? all : all.filter(function (r) { return r.createdBy === user.id; });
+
+    var rowsHtml = requests.map(function (r) {
+      return (
+        '<tr>' +
+          '<td><a data-link href="#/fuguai/requests/' + r.id + '" style="color:inherit; text-decoration:none;">' + esc(r.requestDate || "-") + '</a></td>' +
+          '<td><a data-link href="#/fuguai/requests/' + r.id + '" style="color:inherit; text-decoration:none;">' + esc(r.branchName || "-") + '</a></td>' +
+          '<td>' + esc(r.staffName || "-") + '</td>' +
+          '<td>' + esc(r.customerFacilityName || "-") + '</td>' +
+          '<td>' + r.items.length + '</td>' +
+          '<td><span class="badge ' + r.status + '">' + SIMPLE_STATUS_LABEL[r.status] + '</span></td>' +
+        '</tr>'
+      );
+    }).join("");
+
+    mount(
+      '<div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:24px; flex-wrap:wrap; gap:8px;">' +
+        '<div><h1>不具合処理依頼 処理状況一覧</h1><p class="muted">' + (isPlanning(user) ? "営業から届いた不具合処理依頼です。クリックすると詳細画面へ移動します。" : "あなたが依頼した不具合処理依頼の一覧です。") + '</p></div>' +
+        '<a data-link href="#/fuguai/new" class="btn btn-primary" style="text-decoration:none; display:inline-block;">+ 新規依頼</a>' +
+      '</div>' +
+      (requests.length === 0
+        ? '<div class="empty-box">まだ依頼がありません。</div>'
+        : '<div class="table-wrap"><table><thead><tr><th>依頼日</th><th>店所名</th><th>担当者名</th><th>得意先施設名</th><th>商品数</th><th>ステータス</th></tr></thead><tbody>' + rowsHtml + '</tbody></table></div>')
+    );
+  }
+
+  function renderFuguaiDetail(id, showSubmitted) {
+    var user = getCurrentUser();
+    var req = fuguaiStore.get(id);
+    if (!req) { mount('<div class="empty-box">依頼が見つかりませんでした。</div>'); return; }
+    if (!isPlanning(user) && req.createdBy !== user.id) {
+      mount('<div class="banner-error">この依頼を閲覧する権限がありません。</div>'); return;
+    }
+
+    var itemsHtml = req.items.map(function (item, idx) {
+      return (
+        '<div class="item-detail-card">' +
+          '<div class="item-detail-head"><span class="name">商品 ' + (idx + 1) + ': ' + esc(item.productName || "-") + '</span></div>' +
+          '<dl class="info-grid cols-4">' +
+            '<div><dt>メーカーコード</dt><dd>' + esc(item.makerCode || "-") + '</dd></div>' +
+            '<div><dt>商品コード</dt><dd>' + esc(item.productCode || "-") + '</dd></div>' +
+            '<div><dt>梱包単位</dt><dd>' + esc(item.packingUnit || "-") + '</dd></div>' +
+            '<div><dt>数量</dt><dd>' + esc(item.quantity || "-") + '</dd></div>' +
+            '<div><dt>ロットNO.</dt><dd>' + esc(item.lotNo || "-") + '</dd></div>' +
+            '<div><dt>不具合内容</dt><dd>' + esc(item.defectCategory || "-") + '</dd></div>' +
+          '</dl>' +
+          '<div style="margin-top:12px;"><dt class="muted-xs" style="font-weight:600;">不具合内容詳細</dt><dd style="margin-top:3px; font-size:13.5px;">' + esc(item.defectDetail || "-") + '</dd></div>' +
+        '</div>'
+      );
+    }).join("");
+
+    mount(
+      '<a class="back-link" data-link href="#/fuguai/requests">← 一覧へ戻る</a>' +
+      (showSubmitted ? '<div class="banner-success">依頼を送信しました。企画側の確認をお待ちください。</div>' : '') +
+      '<div class="detail-title-row"><h1>不具合処理依頼 詳細</h1><span class="badge ' + req.status + '">' + SIMPLE_STATUS_LABEL[req.status] + '</span></div>' +
+      '<section class="panel"><h2>依頼者情報</h2><dl class="info-grid cols-3">' +
+        '<div><dt>依頼日</dt><dd>' + esc(req.requestDate || "-") + '</dd></div>' +
+        '<div><dt>店所名</dt><dd>' + esc(req.branchName || "-") + '</dd></div>' +
+        '<div><dt>店所コード</dt><dd>' + esc(req.branchCode || "-") + '</dd></div>' +
+        '<div><dt>所属長名</dt><dd>' + esc(req.supervisorName || "-") + '</dd></div>' +
+        '<div><dt>担当者名</dt><dd>' + esc(req.staffName || "-") + '</dd></div>' +
+        '<div><dt>社員番号</dt><dd>' + esc(req.employeeNumber || "-") + '</dd></div>' +
+      '</dl></section>' +
+      '<section class="panel"><h2>得意先情報</h2><dl class="info-grid cols-4">' +
+        '<div><dt>得意先施設名</dt><dd>' + esc(req.customerFacilityName || "-") + '</dd></div>' +
+        '<div><dt>得意先コード</dt><dd>' + esc(req.customerCode || "-") + '</dd></div>' +
+        '<div><dt>部署</dt><dd>' + esc(req.department || "-") + '</dd></div>' +
+        '<div><dt>ご担当者名</dt><dd>' + esc(req.contactPerson || "-") + '</dd></div>' +
+      '</dl></section>' +
+      '<section class="panel"><h2>商品明細・不具合内容</h2><div style="margin-top:16px;">' + itemsHtml + '</div></section>' +
+      '<section class="panel"><h2>不具合品送付先</h2><dl class="info-grid" style="grid-template-columns:1fr;">' +
+        '<div><dt>送付先</dt><dd>' + esc(req.sendDestination || "-") + '</dd></div>' +
+        '<div><dt>特記事項</dt><dd>' + esc(req.sendDestinationNotes || "-") + '</dd></div>' +
+      '</dl></section>' +
+      '<section class="panel"><h2>依頼内容</h2><dl class="info-grid cols-3">' +
+        '<div><dt>① メーカーから文書による回答</dt><dd>' + (req.needsWrittenResponse ? "必要" : "不要") + '</dd></div>' +
+        '<div><dt>② 代替品</dt><dd>' + (req.needsReplacement ? "必要" : "不要") + '</dd></div>' +
+        (req.needsReplacement ? '<div><dt>代替品数量・単位</dt><dd>' + esc(req.replacementQuantity || "-") + ' ' + esc(req.replacementUnit || "") + '</dd></div>' : '') +
+      '</dl></section>' +
+      '<section class="panel"><h2>その他</h2><p class="muted" style="margin-top:8px;">' + esc(req.otherNotes || "-") + '</p></section>' +
+      '<section class="panel"><h2>企画側 処理</h2>' +
+        (isPlanning(user)
+          ? '<div id="fuguai-planning-form" style="margin-top:12px;">' +
+              '<div class="grid cols-3" style="margin-bottom:12px;">' +
+                '<div>' + fieldLabel("ステータス") + '<select id="fuguai-status">' +
+                  Object.keys(SIMPLE_STATUS_LABEL).map(function (k) { return '<option value="' + k + '"' + (k === req.status ? " selected" : "") + '>' + SIMPLE_STATUS_LABEL[k] + '</option>'; }).join("") +
+                '</select></div>' +
+              '</div>' +
+              '<textarea id="fuguai-comment" rows="3" placeholder="企画コメント">' + esc(req.planningComment || "") + '</textarea>' +
+              '<button type="button" class="btn-secondary" style="margin-top:8px;" id="fuguai-update-btn">更新</button>' +
+            '</div>'
+          : '<p class="muted" style="margin-top:10px;">' + esc(req.planningComment || "（まだコメントがありません）") + '</p>') +
+      '</section>'
+    );
+
+    var updateBtn = document.getElementById("fuguai-update-btn");
+    if (updateBtn) {
+      updateBtn.addEventListener("click", function () {
+        var current = fuguaiStore.get(id);
+        current.status = document.getElementById("fuguai-status").value;
+        current.planningComment = document.getElementById("fuguai-comment").value;
+        current.updatedAt = new Date().toISOString();
+        fuguaiStore.upsert(current);
+        renderFuguaiDetail(id, false);
+      });
+    }
+  }
+
+  // ================= Module: サンプル申請 (Sample) =================
+
+  function sampleItemRowTemplate(index) {
+    return (
+      '<div class="item-row" data-item-row>' +
+        '<div class="item-row-head"><span class="title">明細 ' + (index + 1) + '</span>' +
+          '<button type="button" class="link-btn danger" data-remove-item>この行を削除</button></div>' +
+        '<div class="grid cols-4">' +
+          '<div>' + fieldLabel("サンプル管理番号") + '<input type="text" data-field="sampleManagementNo" /></div>' +
+          '<div>' + fieldLabel("メーカーコード") + '<input type="text" data-field="makerCode" /></div>' +
+          '<div>' + fieldLabel("商品コード") + '<input type="text" data-field="productCode" /></div>' +
+          '<div>' + fieldLabel("商品名", true) + '<input type="text" data-field="productName" required /></div>' +
+          '<div>' + fieldLabel("梱包単位") + '<input type="text" data-field="packingUnit" /></div>' +
+          '<div>' + fieldLabel("依頼数量") + '<input type="text" data-field="requestQuantity" /></div>' +
+          '<div>' + fieldLabel("依頼単位") + '<input type="text" data-field="requestUnit" /></div>' +
+          '<div>' + fieldLabel("得意先コード") + '<input type="text" data-field="customerCode" /></div>' +
+          '<div>' + fieldLabel("得意先名") + '<input type="text" data-field="customerName" /></div>' +
+          '<div>' + fieldLabel("納入予定価格") + '<input type="number" step="any" data-field="plannedPrice" /></div>' +
+          '<div>' + fieldLabel("納入予定数量") + '<input type="text" data-field="plannedQuantity" /></div>' +
+          '<div>' + fieldLabel("納入予定日") + '<input type="date" data-field="plannedDate" /></div>' +
+        '</div>' +
+      '</div>'
+    );
+  }
+
+  function renderSampleNew() {
+    var user = getCurrentUser();
+    mount(
+      '<h1>WiSM製品 サンプル申請</h1>' +
+      '<p class="muted" style="margin-bottom:24px;">入力して送信すると、企画側の一覧に申請が追加されます。</p>' +
+      '<form id="sample-form">' +
+      '<section class="panel"><h2>申請情報</h2>' +
+        '<div class="grid cols-3" style="margin-top:16px;">' +
+          '<div>' + fieldLabel("申請日", true) + '<input type="date" name="requestDate" required value="' + todayStr() + '" /></div>' +
+          '<div class="grid" style="grid-column:span 2;">' +
+            '<div style="grid-column:1/-1;">' + fieldLabel("申請先") +
+              '<div class="radio-row">' + DESTINATION_OPTIONS.map(function (d, i) { return '<label><input type="radio" name="destination" value="' + d + '"' + (i === 0 ? " checked" : "") + ' /> ' + d + '</label>'; }).join("") + '</div>' +
+            '</div>' +
+          '</div>' +
+        '</div></section>' +
+      '<section class="panel"><h2>申請者・責任者</h2>' +
+        '<div class="grid cols-3" style="margin-top:16px;">' +
+          '<div>' + fieldLabel("社員番号") + '<input type="text" name="requesterEmployeeNumber" value="' + esc(user.employeeNumber || "") + '" /></div>' +
+          '<div>' + fieldLabel("氏名", true) + '<input type="text" name="requesterName" required value="' + esc(user.name || "") + '" /></div>' +
+          '<div>' + fieldLabel("部署") + '<input type="text" name="requesterDepartment" value="' + esc(user.branchName || "") + '" /></div>' +
+          '<div>' + fieldLabel("責任者コード") + '<input type="text" name="responsibleCode" /></div>' +
+          '<div>' + fieldLabel("責任者名") + '<input type="text" name="responsibleName" /></div>' +
+        '</div></section>' +
+      '<section class="panel"><h2>目的・現況</h2>' +
+        fieldLabel("目的") +
+        '<div class="radio-row">' + PURPOSE_OPTIONS.map(function (p, i) { return '<label><input type="radio" name="purpose" value="' + p + '"' + (i === 0 ? " checked" : "") + ' data-purpose-radio /> ' + p + '</label>'; }).join("") + '</div>' +
+        '<div id="purpose-other-wrap" style="margin-top:8px; display:none;"><input type="text" name="purposeOtherText" placeholder="目的（その他）" /></div>' +
+        '<div class="grid" style="margin-top:16px;">' +
+          '<div>' + fieldLabel("現在納入業者") + '<input type="text" name="currentVendor" /></div>' +
+          '<div>' + fieldLabel("現在納入商品【他社競合品名】") + '<input type="text" name="currentProduct" /></div>' +
+        '</div>' +
+        '<div style="margin-top:16px;">' + fieldLabel("特記事項") + '<textarea name="notes" rows="2"></textarea></div>' +
+      '</section>' +
+      '<section class="panel"><h2>サンプル明細</h2>' +
+        '<p class="muted-xs" style="margin-top:4px;">依頼するサンプルを1行ずつ入力してください。行は自由に追加・削除できます。</p>' +
+        '<div id="item-list" style="margin-top:16px;">' + sampleItemRowTemplate(0) + '</div>' +
+        '<button type="button" class="btn-secondary add-row-btn" id="add-item">+ 明細を追加</button></section>' +
+      '<div class="actions-right"><button type="submit" class="btn btn-primary">企画へ申請する</button></div>' +
+      '</form>'
+    );
+
+    var itemList = document.getElementById("item-list");
+    setupRepeatableList(itemList, document.getElementById("add-item"), sampleItemRowTemplate, "明細");
+
+    var purposeOtherWrap = document.getElementById("purpose-other-wrap");
+    document.querySelectorAll("[data-purpose-radio]").forEach(function (radio) {
+      radio.addEventListener("change", function () {
+        purposeOtherWrap.style.display = radio.value === "その他" && radio.checked ? "block" : (document.querySelector('[data-purpose-radio]:checked').value === "その他" ? "block" : "none");
+      });
+    });
+
+    document.getElementById("sample-form").addEventListener("submit", function (e) {
+      e.preventDefault();
+      var form = e.target;
+      var itemRows = itemList.querySelectorAll("[data-item-row]");
+      var items = []; var hasError = false;
+      itemRows.forEach(function (row) {
+        var get = function (f) { return row.querySelector('[data-field="' + f + '"]'); };
+        var productName = get("productName").value.trim();
+        var anyValue = ["makerCode","productCode","productName","requestQuantity","customerCode","customerName"].some(function (f) { return get(f).value.trim() !== ""; });
+        if (!anyValue) return;
+        if (!productName) { hasError = true; return; }
+        items.push({
+          id: uid(), sampleManagementNo: get("sampleManagementNo").value.trim(), makerCode: get("makerCode").value.trim(),
+          productCode: get("productCode").value.trim(), productName: productName, packingUnit: get("packingUnit").value.trim(),
+          requestQuantity: get("requestQuantity").value.trim(), requestUnit: get("requestUnit").value.trim(),
+          customerCode: get("customerCode").value.trim(), customerName: get("customerName").value.trim(),
+          plannedPrice: numOrNull(get("plannedPrice").value), plannedQuantity: get("plannedQuantity").value.trim(), plannedDate: get("plannedDate").value
+        });
+      });
+      if (!form.reportValidity()) return;
+      if (hasError || items.length === 0) { alert("サンプル明細を1件以上、商品名を入力してください。"); return; }
+
+      var fd = new FormData(form);
+      var existingCount = sampleStore.load().length;
+      var req = {
+        id: uid(), createdBy: user.id, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(),
+        requestNo: "S" + String(existingCount + 1).padStart(6, "0"),
+        requestDate: fd.get("requestDate"), destination: fd.get("destination"),
+        requesterEmployeeNumber: fd.get("requesterEmployeeNumber"), requesterName: fd.get("requesterName"), requesterDepartment: fd.get("requesterDepartment"),
+        responsibleCode: fd.get("responsibleCode"), responsibleName: fd.get("responsibleName"),
+        purpose: fd.get("purpose"), purposeOtherText: fd.get("purposeOtherText"),
+        currentVendor: fd.get("currentVendor"), currentProduct: fd.get("currentProduct"), notes: fd.get("notes"),
+        planningComment: "", logisticsComment: "", reviewDate: "", planningProcessedDate: "", logisticsProcessedDate: "",
+        status: "submitted", items: items
+      };
+      sampleStore.upsert(req);
+      location.hash = "#/sample/requests/" + req.id + "?submitted=1";
+    });
+  }
+
+  function renderSampleList() {
+    var user = getCurrentUser();
+    var all = sampleStore.load().slice().sort(function (a, b) { return new Date(b.createdAt) - new Date(a.createdAt); });
+    var requests = isPlanning(user) ? all : all.filter(function (r) { return r.createdBy === user.id; });
+
+    var rowsHtml = requests.map(function (r) {
+      return (
+        '<tr>' +
+          '<td><a data-link href="#/sample/requests/' + r.id + '" style="color:inherit; text-decoration:none;">' + esc(r.requestNo || "-") + '</a></td>' +
+          '<td><a data-link href="#/sample/requests/' + r.id + '" style="color:inherit; text-decoration:none;">' + esc(r.requestDate || "-") + '</a></td>' +
+          '<td>' + esc(r.destination || "-") + '</td>' +
+          '<td>' + esc(r.requesterName || "-") + '</td>' +
+          '<td>' + r.items.length + '</td>' +
+          '<td><span class="badge ' + r.status + '">' + SIMPLE_STATUS_LABEL[r.status] + '</span></td>' +
+        '</tr>'
+      );
+    }).join("");
+
+    mount(
+      '<div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:24px; flex-wrap:wrap; gap:8px;">' +
+        '<div><h1>サンプル申請 処理状況一覧</h1><p class="muted">' + (isPlanning(user) ? "営業から届いたサンプル申請です。クリックすると詳細画面へ移動します。" : "あなたが申請したサンプル申請の一覧です。") + '</p></div>' +
+        '<a data-link href="#/sample/new" class="btn btn-primary" style="text-decoration:none; display:inline-block;">+ 新規申請</a>' +
+      '</div>' +
+      (requests.length === 0
+        ? '<div class="empty-box">まだ申請がありません。</div>'
+        : '<div class="table-wrap"><table><thead><tr><th>申請番号</th><th>申請日</th><th>申請先</th><th>申請者</th><th>明細数</th><th>ステータス</th></tr></thead><tbody>' + rowsHtml + '</tbody></table></div>')
+    );
+  }
+
+  function renderSampleDetail(id, showSubmitted) {
+    var user = getCurrentUser();
+    var req = sampleStore.get(id);
+    if (!req) { mount('<div class="empty-box">申請が見つかりませんでした。</div>'); return; }
+    if (!isPlanning(user) && req.createdBy !== user.id) {
+      mount('<div class="banner-error">この申請を閲覧する権限がありません。</div>'); return;
+    }
+
+    var itemsHtml = req.items.map(function (item, idx) {
+      return (
+        '<div class="item-detail-card">' +
+          '<div class="item-detail-head"><span class="name">明細 ' + (idx + 1) + ': ' + esc(item.productName || "-") + '</span></div>' +
+          '<dl class="info-grid cols-4">' +
+            '<div><dt>サンプル管理番号</dt><dd>' + esc(item.sampleManagementNo || "-") + '</dd></div>' +
+            '<div><dt>メーカーコード</dt><dd>' + esc(item.makerCode || "-") + '</dd></div>' +
+            '<div><dt>商品コード</dt><dd>' + esc(item.productCode || "-") + '</dd></div>' +
+            '<div><dt>梱包単位</dt><dd>' + esc(item.packingUnit || "-") + '</dd></div>' +
+            '<div><dt>依頼数量</dt><dd>' + esc(item.requestQuantity || "-") + '</dd></div>' +
+            '<div><dt>依頼単位</dt><dd>' + esc(item.requestUnit || "-") + '</dd></div>' +
+            '<div><dt>得意先コード</dt><dd>' + esc(item.customerCode || "-") + '</dd></div>' +
+            '<div><dt>得意先名</dt><dd>' + esc(item.customerName || "-") + '</dd></div>' +
+            '<div><dt>納入予定価格</dt><dd>' + fmtNum(item.plannedPrice) + '</dd></div>' +
+            '<div><dt>納入予定数量</dt><dd>' + esc(item.plannedQuantity || "-") + '</dd></div>' +
+            '<div><dt>納入予定日</dt><dd>' + esc(item.plannedDate || "-") + '</dd></div>' +
+          '</dl>' +
+        '</div>'
+      );
+    }).join("");
+
+    mount(
+      '<a class="back-link" data-link href="#/sample/requests">← 一覧へ戻る</a>' +
+      (showSubmitted ? '<div class="banner-success">申請を送信しました。企画側の確認をお待ちください。</div>' : '') +
+      '<div class="detail-title-row"><h1>サンプル申請 詳細（' + esc(req.requestNo) + '）</h1><span class="badge ' + req.status + '">' + SIMPLE_STATUS_LABEL[req.status] + '</span></div>' +
+      '<section class="panel"><h2>申請情報</h2><dl class="info-grid cols-3">' +
+        '<div><dt>申請日</dt><dd>' + esc(req.requestDate || "-") + '</dd></div>' +
+        '<div><dt>申請先</dt><dd>' + esc(req.destination || "-") + '</dd></div>' +
+      '</dl></section>' +
+      '<section class="panel"><h2>申請者・責任者</h2><dl class="info-grid cols-3">' +
+        '<div><dt>社員番号</dt><dd>' + esc(req.requesterEmployeeNumber || "-") + '</dd></div>' +
+        '<div><dt>氏名</dt><dd>' + esc(req.requesterName || "-") + '</dd></div>' +
+        '<div><dt>部署</dt><dd>' + esc(req.requesterDepartment || "-") + '</dd></div>' +
+        '<div><dt>責任者コード</dt><dd>' + esc(req.responsibleCode || "-") + '</dd></div>' +
+        '<div><dt>責任者名</dt><dd>' + esc(req.responsibleName || "-") + '</dd></div>' +
+      '</dl></section>' +
+      '<section class="panel"><h2>目的・現況</h2><dl class="info-grid cols-3">' +
+        '<div><dt>目的</dt><dd>' + esc(req.purpose === "その他" ? req.purposeOtherText : req.purpose) + '</dd></div>' +
+        '<div><dt>現在納入業者</dt><dd>' + esc(req.currentVendor || "-") + '</dd></div>' +
+        '<div><dt>現在納入商品【他社競合品名】</dt><dd>' + esc(req.currentProduct || "-") + '</dd></div>' +
+      '</dl><div style="margin-top:12px;"><dt class="muted-xs" style="font-weight:600;">特記事項</dt><dd style="margin-top:3px; font-size:13.5px;">' + esc(req.notes || "-") + '</dd></div></section>' +
+      '<section class="panel"><h2>サンプル明細</h2><div style="margin-top:16px;">' + itemsHtml + '</div></section>' +
+      '<section class="panel"><h2>企画・物流処理</h2>' +
+        (isPlanning(user)
+          ? '<div id="sample-planning-form" style="margin-top:12px;">' +
+              '<div class="grid cols-4" style="margin-bottom:12px;">' +
+                '<div>' + fieldLabel("ステータス") + '<select id="sample-status">' +
+                  Object.keys(SIMPLE_STATUS_LABEL).map(function (k) { return '<option value="' + k + '"' + (k === req.status ? " selected" : "") + '>' + SIMPLE_STATUS_LABEL[k] + '</option>'; }).join("") +
+                '</select></div>' +
+                '<div>' + fieldLabel("審査日") + '<input type="date" id="sample-review-date" value="' + esc(req.reviewDate || "") + '" /></div>' +
+                '<div>' + fieldLabel("企画処理日") + '<input type="date" id="sample-planning-date" value="' + esc(req.planningProcessedDate || "") + '" /></div>' +
+                '<div>' + fieldLabel("物流処理日") + '<input type="date" id="sample-logistics-date" value="' + esc(req.logisticsProcessedDate || "") + '" /></div>' +
+              '</div>' +
+              '<div class="grid">' +
+                '<div>' + fieldLabel("企画コメント") + '<textarea id="sample-planning-comment" rows="3">' + esc(req.planningComment || "") + '</textarea></div>' +
+                '<div>' + fieldLabel("物流コメント") + '<textarea id="sample-logistics-comment" rows="3">' + esc(req.logisticsComment || "") + '</textarea></div>' +
+              '</div>' +
+              '<button type="button" class="btn-secondary" style="margin-top:12px;" id="sample-update-btn">更新</button>' +
+            '</div>'
+          : '<dl class="info-grid cols-3" style="margin-top:8px;">' +
+              '<div><dt>企画コメント</dt><dd>' + esc(req.planningComment || "-") + '</dd></div>' +
+              '<div><dt>物流コメント</dt><dd>' + esc(req.logisticsComment || "-") + '</dd></div>' +
+              '<div><dt>審査日</dt><dd>' + esc(req.reviewDate || "-") + '</dd></div>' +
+              '<div><dt>企画処理日</dt><dd>' + esc(req.planningProcessedDate || "-") + '</dd></div>' +
+              '<div><dt>物流処理日</dt><dd>' + esc(req.logisticsProcessedDate || "-") + '</dd></div>' +
+            '</dl>') +
+      '</section>'
+    );
+
+    var updateBtn = document.getElementById("sample-update-btn");
+    if (updateBtn) {
+      updateBtn.addEventListener("click", function () {
+        var current = sampleStore.get(id);
+        current.status = document.getElementById("sample-status").value;
+        current.reviewDate = document.getElementById("sample-review-date").value;
+        current.planningProcessedDate = document.getElementById("sample-planning-date").value;
+        current.logisticsProcessedDate = document.getElementById("sample-logistics-date").value;
+        current.planningComment = document.getElementById("sample-planning-comment").value;
+        current.logisticsComment = document.getElementById("sample-logistics-comment").value;
+        current.updatedAt = new Date().toISOString();
+        sampleStore.upsert(current);
+        renderSampleDetail(id, false);
+      });
+    }
+  }
+
+  // ================= Router =================
+
   function router() {
+    renderNav();
+    var user = getCurrentUser();
     var hash = location.hash || "#/";
     var withoutHash = hash.slice(1);
     var qIndex = withoutHash.indexOf("?");
@@ -646,24 +1274,36 @@
     var query = qIndex >= 0 ? withoutHash.slice(qIndex + 1) : "";
     var params = new URLSearchParams(query);
 
-    var detailMatch = path.match(/^\/requests\/([^/]+)$/);
+    if (path !== "/login" && !user) { location.hash = "#/login"; return; }
+    if (path === "/login" && user) { location.hash = "#/"; return; }
 
-    if (path === "/" || path === "") {
-      renderHome();
-    } else if (path === "/new") {
-      renderNewForm();
-    } else if (path === "/requests") {
-      renderRequestsList();
-    } else if (detailMatch) {
-      renderRequestDetail(decodeURIComponent(detailMatch[1]), params.get("submitted") === "1");
-    } else {
-      renderHome();
-    }
+    var appEl = document.getElementById("app");
+
+    if (path === "/login") { appEl.className = "center-main"; renderAuthView(); window.scrollTo(0, 0); return; }
+    appEl.className = "";
+
+    var tokkaDetail = path.match(/^\/tokka\/requests\/([^/]+)$/);
+    var fuguaiDetail = path.match(/^\/fuguai\/requests\/([^/]+)$/);
+    var sampleDetail = path.match(/^\/sample\/requests\/([^/]+)$/);
+
+    if (path === "/" || path === "") renderMainMenu();
+    else if (path === "/tokka/new") renderTokkaNew();
+    else if (path === "/tokka/requests") renderTokkaList();
+    else if (tokkaDetail) renderTokkaDetail(decodeURIComponent(tokkaDetail[1]), params.get("submitted") === "1");
+    else if (path === "/fuguai/new") renderFuguaiNew();
+    else if (path === "/fuguai/requests") renderFuguaiList();
+    else if (fuguaiDetail) renderFuguaiDetail(decodeURIComponent(fuguaiDetail[1]), params.get("submitted") === "1");
+    else if (path === "/sample/new") renderSampleNew();
+    else if (path === "/sample/requests") renderSampleList();
+    else if (sampleDetail) renderSampleDetail(decodeURIComponent(sampleDetail[1]), params.get("submitted") === "1");
+    else renderMainMenu();
+
     window.scrollTo(0, 0);
   }
 
   window.addEventListener("hashchange", router);
   window.addEventListener("DOMContentLoaded", router);
+  router();
 })();
 </script>
 </body>

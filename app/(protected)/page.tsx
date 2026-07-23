@@ -31,7 +31,7 @@ export default async function MainMenuPage() {
   return (
     <div className="mx-auto max-w-5xl px-4 py-16 sm:px-6">
       <h1 className="text-2xl font-bold tracking-tight text-slate-900">
-        WiSM製品総合アプリ
+        WiSM製品アプリ
       </h1>
       <p className="mt-2 text-slate-600">
         {user?.name} さん（{user?.branchName || "-"}・{user?.role}）としてログイン中です。

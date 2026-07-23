@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "WiSM製品総合アプリ",
+  title: "WiSM製品アプリ",
   description: "WiSM製品の特価申請・不具合処理依頼・サンプル依頼を行う社内アプリ",
 };
 
