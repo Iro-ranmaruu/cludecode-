@@ -175,10 +175,7 @@
 
   .auth-card { width: 100%; max-width: 380px; border: 1px solid var(--line); background: var(--surface); border-radius: var(--radius); padding: 26px; box-shadow: var(--shadow-md); }
   .auth-card h1 { font-size: 18px; }
-  .auth-tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin: 16px 0 20px; }
-  .auth-tab { flex: 1; text-align: center; padding: 9px 4px; font-size: 13px; font-weight: 700; color: var(--ink-soft); background: none; border: none; border-bottom: 2px solid transparent; margin-bottom: -1px; cursor: pointer; font-family: inherit; }
-  .auth-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
-  .auth-form { display: flex; flex-direction: column; gap: 12px; }
+  .auth-form { display: flex; flex-direction: column; gap: 12px; margin-top: 16px; }
   .demo-hint { margin: 0 0 16px; padding: 10px 12px; border-radius: 8px; background: var(--accent-soft); border: 1px solid var(--accent-soft-line); color: var(--accent-ink); font-size: 12.5px; line-height: 1.6; }
   .demo-hint strong { font-variant-numeric: tabular-nums; }
 </style>
@@ -295,24 +292,6 @@
   function findUserByEmployeeNumber(num) {
     return loadUsers().find(function (u) { return u.employeeNumber === num; }) || null;
   }
-  function registerUser(input) {
-    if (findUserByEmployeeNumber(input.employeeNumber)) {
-      throw new Error("この社員番号は既に登録されています。ログインしてください。");
-    }
-    var user = {
-      id: uid(),
-      employeeNumber: input.employeeNumber,
-      password: input.password,
-      name: input.name,
-      branchName: input.branchName,
-      role: input.role,
-      createdAt: new Date().toISOString()
-    };
-    var list = loadUsers();
-    list.push(user);
-    saveUsers(list);
-    return user;
-  }
   function verifyLogin(num, password) {
     var user = findUserByEmployeeNumber(num);
     if (!user || user.password !== password) return null;
@@ -327,19 +306,22 @@
   }
   function isPlanning(user) { return !!user && user.role === "企画"; }
 
-  function seedDemoUser() {
-    if (findUserByEmployeeNumber("4908")) return;
+  function seedDemoUsersIfMissing() {
+    var demoUsers = [
+      { employeeNumber: "4908", password: "wism4908", name: "飯田 彩葉", branchName: "ムトウWiSM製品企画販売部", role: "営業" },
+      { employeeNumber: "9001", password: "wism9001", name: "武藤 賢三", branchName: "WiSM製品企画販売部", role: "企画" }
+    ];
     var list = loadUsers();
-    list.push({
-      id: uid(),
-      employeeNumber: "4908",
-      password: "wism4908",
-      name: "飯田 彩葉",
-      branchName: "ムトウWiSM製品企画販売部",
-      role: "営業",
-      createdAt: new Date().toISOString()
+    var changed = false;
+    demoUsers.forEach(function (u) {
+      if (list.some(function (existing) { return existing.employeeNumber === u.employeeNumber; })) return;
+      list.push({
+        id: uid(), employeeNumber: u.employeeNumber, password: u.password, name: u.name,
+        branchName: u.branchName, role: u.role, createdAt: new Date().toISOString()
+      });
+      changed = true;
     });
-    saveUsers(list);
+    if (changed) saveUsers(list);
   }
 
   // ================= Stores =================
@@ -404,92 +386,38 @@
   }
 
   function renderAuthView() {
-    var mode = renderAuthView._mode || "login";
-
     var html =
       '<div class="auth-card">' +
         '<h1>WiSM製品アプリ</h1>' +
         '<p class="muted-xs" style="margin-top:4px;">社員番号とパスワードでログインしてください。</p>' +
-        '<div class="auth-tabs">' +
-          '<button type="button" class="auth-tab' + (mode === "login" ? " active" : "") + '" data-auth-tab="login">ログイン</button>' +
-          '<button type="button" class="auth-tab' + (mode === "register" ? " active" : "") + '" data-auth-tab="register">初めての方（新規登録）</button>' +
-        '</div>' +
         '<div id="auth-error"></div>' +
-        (mode === "login"
-          ? '<p class="demo-hint">デモ用ログイン　社員番号: <strong>4908</strong>　パスワード: <strong>wism4908</strong></p>' +
-            '<form id="login-form" class="auth-form">' +
-              '<div>' + fieldLabel("社員番号", true) + '<input type="text" name="employeeNumber" required /></div>' +
-              '<div>' + fieldLabel("パスワード", true) + '<input type="password" name="password" required /></div>' +
-              '<button type="submit" class="btn btn-primary btn-block">ログイン</button>' +
-            '</form>'
-          : '<form id="register-form" class="auth-form">' +
-              '<div>' + fieldLabel("社員番号", true) + '<input type="text" name="employeeNumber" required /></div>' +
-              '<div>' + fieldLabel("氏名", true) + '<input type="text" name="name" required /></div>' +
-              '<div>' + fieldLabel("店所名", true) + '<input type="text" name="branchName" required /></div>' +
-              '<div>' + fieldLabel("権限", true) +
-                '<div class="radio-row">' +
-                  '<label><input type="radio" name="role" value="営業" checked /> 営業</label>' +
-                  '<label><input type="radio" name="role" value="企画" /> 企画</label>' +
-                '</div>' +
-              '</div>' +
-              '<div>' + fieldLabel("パスワード", true) + '<input type="password" name="password" required minlength="4" /></div>' +
-              '<div>' + fieldLabel("パスワード（確認）", true) + '<input type="password" name="passwordConfirm" required minlength="4" /></div>' +
-              '<button type="submit" class="btn btn-primary btn-block">登録してログイン</button>' +
-            '</form>') +
+        '<p class="demo-hint">デモ用ログイン<br />' +
+          '営業　社員番号: <strong>4908</strong>　パスワード: <strong>wism4908</strong><br />' +
+          '企画　社員番号: <strong>9001</strong>　パスワード: <strong>wism9001</strong></p>' +
+        '<form id="login-form" class="auth-form">' +
+          '<div>' + fieldLabel("社員番号", true) + '<input type="text" name="employeeNumber" required /></div>' +
+          '<div>' + fieldLabel("パスワード", true) + '<input type="password" name="password" required /></div>' +
+          '<button type="submit" class="btn btn-primary btn-block">ログイン</button>' +
+        '</form>' +
       '</div>';
 
     var appEl = document.getElementById("app");
     appEl.className = "center-main";
     appEl.innerHTML = html;
 
-    appEl.querySelectorAll("[data-auth-tab]").forEach(function (btn) {
-      btn.addEventListener("click", function () {
-        renderAuthView._mode = btn.getAttribute("data-auth-tab");
-        renderAuthView();
-      });
-    });
-
     function showError(msg) {
       document.getElementById("auth-error").innerHTML = '<p class="banner-error">' + esc(msg) + '</p>';
     }
 
-    var loginForm = document.getElementById("login-form");
-    if (loginForm) {
-      loginForm.addEventListener("submit", function (e) {
-        e.preventDefault();
-        var fd = new FormData(loginForm);
-        var user = verifyLogin(String(fd.get("employeeNumber")).trim(), String(fd.get("password")));
-        if (!user) { showError("社員番号またはパスワードが違います"); return; }
-        setSession(user.id);
-        location.hash = "#/";
-        router();
-      });
-    }
-
-    var registerForm = document.getElementById("register-form");
-    if (registerForm) {
-      registerForm.addEventListener("submit", function (e) {
-        e.preventDefault();
-        var fd = new FormData(registerForm);
-        var password = String(fd.get("password"));
-        var passwordConfirm = String(fd.get("passwordConfirm"));
-        if (password !== passwordConfirm) { showError("パスワードが一致しません"); return; }
-        try {
-          var user = registerUser({
-            employeeNumber: String(fd.get("employeeNumber")).trim(),
-            name: String(fd.get("name")).trim(),
-            branchName: String(fd.get("branchName")).trim(),
-            role: String(fd.get("role")),
-            password: password
-          });
-          setSession(user.id);
-          location.hash = "#/";
-          router();
-        } catch (err) {
-          showError(err.message);
-        }
-      });
-    }
+    document.getElementById("login-form").addEventListener("submit", function (e) {
+      e.preventDefault();
+      var fd = new FormData(e.target);
+      var user = verifyLogin(String(fd.get("employeeNumber")).trim(), String(fd.get("password")));
+      if (!user) { showError("社員番号またはパスワードが違います"); return; }
+      setSession(user.id);
+      location.hash = "#/";
+      router();
+    });
   }
 
   // ================= View: Main menu =================
@@ -1319,7 +1247,7 @@
     window.scrollTo(0, 0);
   }
 
-  seedDemoUser();
+  seedDemoUsersIfMissing();
   window.addEventListener("hashchange", router);
   window.addEventListener("DOMContentLoaded", router);
   router();
