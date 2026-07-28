@@ -24,12 +24,22 @@ export default async function DefectRequestsPage() {
               : "あなたが依頼した不具合処理依頼の一覧です。"}
           </p>
         </div>
-        <Link
-          href="/fuguai/new"
-          className="rounded-md bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-700"
-        >
-          + 新規依頼
-        </Link>
+        <div className="flex items-center gap-3">
+          {user.role === "企画" && (
+            <a
+              href="/api/export/fuguai"
+              className="rounded-md border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+            >
+              CSVダウンロード
+            </a>
+          )}
+          <Link
+            href="/fuguai/new"
+            className="rounded-md bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-700"
+          >
+            + 新規依頼
+          </Link>
+        </div>
       </div>
 
       {requests.length === 0 ? (

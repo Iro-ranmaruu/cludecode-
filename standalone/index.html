@@ -241,6 +241,30 @@
       .replace(/"/g, "&quot;");
   }
 
+  function csvCell(v) {
+    var s = v === null || v === undefined ? "" : String(v);
+    if (/[",\n\r]/.test(s)) return '"' + s.replace(/"/g, '""') + '"';
+    return s;
+  }
+
+  function toCsv(headers, rows) {
+    var lines = [headers.map(csvCell).join(",")];
+    rows.forEach(function (row) { lines.push(row.map(csvCell).join(",")); });
+    return String.fromCharCode(0xfeff) + lines.join("\r\n");
+  }
+
+  function downloadCsv(filename, csvText) {
+    var blob = new Blob([csvText], { type: "text/csv;charset=utf-8;" });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
   function numOrNull(v) {
     if (v === null || v === undefined || String(v).trim() === "") return null;
     var n = Number(v);
@@ -690,6 +714,38 @@
     });
   }
 
+  var TOKKA_CSV_HEADERS = [
+    "申請ID", "申請日", "店所名", "店所コード", "所属長名", "担当者名", "社員番号",
+    "得意先施設名", "施設内の納入部署", "得意先コード", "ステータス", "特価申請理由", "特記事項", "企画備考",
+    "商品行番号", "メーカーコード", "商品コード", "商品名", "販売単位", "JANコード", "納入価", "通常仕切",
+    "希望仕切額", "月平均販売量", "特価登録もする？", "同商品同得意先で特価登録済み", "納入開始日", "終了日",
+    "商品略称", "判定", "決定仕切額", "作成日時", "更新日時"
+  ];
+
+  function buildTokkaCsv(requests) {
+    var rows = [];
+    requests.forEach(function (r) {
+      var base = [
+        r.id, r.applicationDate, r.branchName, r.branchCode, r.supervisorName, r.staffName, r.employeeNumber,
+        r.customerFacilityName, r.deliveryDepartment, (r.customerCodes || []).join(" / "), r.status,
+        r.reasonType, r.specialNotes, r.planningRemarks
+      ];
+      if (!r.items || r.items.length === 0) {
+        rows.push(base.concat([null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, r.createdAt, r.updatedAt]));
+        return;
+      }
+      r.items.forEach(function (item, index) {
+        rows.push(base.concat([
+          index + 1, item.makerCode, item.productCode, item.productName, item.packingUnit, item.janCode,
+          item.deliveryPrice, item.standardWholesalePrice, item.desiredWholesalePrice, item.monthlyAvgSales,
+          item.registerSpecialPrice, item.existingSpecialPriceFlag ? "はい" : "いいえ", item.deliveryStartDate,
+          item.endDate, item.productAbbreviation, item.decision, item.decidedWholesalePrice, r.createdAt, r.updatedAt
+        ]));
+      });
+    });
+    return toCsv(TOKKA_CSV_HEADERS, rows);
+  }
+
   function renderTokkaList() {
     var user = getCurrentUser();
     var all = tokkaStore.load().slice().sort(function (a, b) { return new Date(b.createdAt) - new Date(a.createdAt); });
@@ -711,12 +767,24 @@
     mount(
       '<div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:24px; flex-wrap:wrap; gap:8px;">' +
         '<div><h1>特価申請 処理状況一覧</h1><p class="muted">' + (isPlanning(user) ? "営業から届いた特価申請です。クリックすると詳細・承認画面へ移動します。" : "あなたが申請した特価申請の一覧です。") + '</p></div>' +
-        '<a data-link href="#/tokka/new" class="btn btn-primary" style="text-decoration:none; display:inline-block;">+ 新規申請</a>' +
+        '<div style="display:flex; gap:8px;">' +
+          (isPlanning(user) ? '<button type="button" id="export-tokka-csv" class="btn btn-secondary">CSVダウンロード</button>' : "") +
+          '<a data-link href="#/tokka/new" class="btn btn-primary" style="text-decoration:none; display:inline-block;">+ 新規申請</a>' +
+        '</div>' +
       '</div>' +
       (requests.length === 0
         ? '<div class="empty-box">まだ申請がありません。</div>'
         : '<div class="table-wrap"><table><thead><tr><th>申請日</th><th>店所名</th><th>担当者名</th><th>得意先施設名</th><th>商品数</th><th>ステータス</th></tr></thead><tbody>' + rowsHtml + '</tbody></table></div>')
     );
+
+    if (isPlanning(user)) {
+      var exportTokkaBtn = document.getElementById("export-tokka-csv");
+      if (exportTokkaBtn) {
+        exportTokkaBtn.addEventListener("click", function () {
+          downloadCsv("tokka_requests_" + new Date().toISOString().slice(0, 10) + ".csv", buildTokkaCsv(all));
+        });
+      }
+    }
   }
 
   function decisionBadgeClass(decision) { return "badge decision-" + decision; }
@@ -948,6 +1016,36 @@
     });
   }
 
+  var FUGUAI_CSV_HEADERS = [
+    "依頼ID", "依頼日", "店所名", "店所コード", "所属長名", "担当者名", "社員番号", "得意先施設名",
+    "得意先コード", "部署", "担当者", "送付先", "送付先備考", "始末書要否", "交換要否", "交換数量", "交換単位",
+    "その他備考", "企画コメント", "ステータス", "商品行番号", "メーカーコード", "商品コード", "商品名",
+    "販売単位", "JANコード", "数量", "ロットNO.", "不具合内容", "不具合内容詳細", "作成日時", "更新日時"
+  ];
+
+  function buildFuguaiCsv(requests) {
+    var rows = [];
+    requests.forEach(function (r) {
+      var base = [
+        r.id, r.requestDate, r.branchName, r.branchCode, r.supervisorName, r.staffName, r.employeeNumber,
+        r.customerFacilityName, r.customerCode, r.department, r.contactPerson, r.sendDestination,
+        r.sendDestinationNotes, r.needsWrittenResponse ? "要" : "不要", r.needsReplacement ? "要" : "不要",
+        r.replacementQuantity, r.replacementUnit, r.otherNotes, r.planningComment, r.status
+      ];
+      if (!r.items || r.items.length === 0) {
+        rows.push(base.concat([null, null, null, null, null, null, null, null, null, null, r.createdAt, r.updatedAt]));
+        return;
+      }
+      r.items.forEach(function (item, index) {
+        rows.push(base.concat([
+          index + 1, item.makerCode, item.productCode, item.productName, item.packingUnit, item.janCode,
+          item.quantity, item.lotNo, item.defectCategory, item.defectDetail, r.createdAt, r.updatedAt
+        ]));
+      });
+    });
+    return toCsv(FUGUAI_CSV_HEADERS, rows);
+  }
+
   function renderFuguaiList() {
     var user = getCurrentUser();
     var all = fuguaiStore.load().slice().sort(function (a, b) { return new Date(b.createdAt) - new Date(a.createdAt); });
@@ -969,12 +1067,24 @@
     mount(
       '<div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:24px; flex-wrap:wrap; gap:8px;">' +
         '<div><h1>不具合処理依頼 処理状況一覧</h1><p class="muted">' + (isPlanning(user) ? "営業から届いた不具合処理依頼です。クリックすると詳細画面へ移動します。" : "あなたが依頼した不具合処理依頼の一覧です。") + '</p></div>' +
-        '<a data-link href="#/fuguai/new" class="btn btn-primary" style="text-decoration:none; display:inline-block;">+ 新規依頼</a>' +
+        '<div style="display:flex; gap:8px;">' +
+          (isPlanning(user) ? '<button type="button" id="export-fuguai-csv" class="btn btn-secondary">CSVダウンロード</button>' : "") +
+          '<a data-link href="#/fuguai/new" class="btn btn-primary" style="text-decoration:none; display:inline-block;">+ 新規依頼</a>' +
+        '</div>' +
       '</div>' +
       (requests.length === 0
         ? '<div class="empty-box">まだ依頼がありません。</div>'
         : '<div class="table-wrap"><table><thead><tr><th>依頼日</th><th>店所名</th><th>担当者名</th><th>得意先施設名</th><th>商品数</th><th>ステータス</th></tr></thead><tbody>' + rowsHtml + '</tbody></table></div>')
     );
+
+    if (isPlanning(user)) {
+      var exportFuguaiBtn = document.getElementById("export-fuguai-csv");
+      if (exportFuguaiBtn) {
+        exportFuguaiBtn.addEventListener("click", function () {
+          downloadCsv("fuguai_requests_" + new Date().toISOString().slice(0, 10) + ".csv", buildFuguaiCsv(all));
+        });
+      }
+    }
   }
 
   function renderFuguaiDetail(id, showSubmitted) {
@@ -1178,6 +1288,38 @@
       sampleStore.upsert(req);
       location.hash = "#/sample/requests/" + req.id + "?submitted=1";
     });
+  }
+
+  var SAMPLE_CSV_HEADERS = [
+    "依頼ID", "サンプル依頼No", "申請日", "送付先", "申請者社員番号", "申請者名", "申請者部署", "責任者コード",
+    "責任者名", "目的", "目的（その他）", "現行仕入先", "現行商品", "備考", "企画コメント", "物流コメント",
+    "審査日", "企画処理日", "物流処理日", "ステータス", "商品行番号", "サンプル管理番号", "メーカーコード",
+    "商品コード", "商品名", "販売単位", "JANコード", "依頼数量", "依頼単位", "得意先コード", "得意先名",
+    "納入予定価格", "納入予定数量", "納入予定日", "作成日時", "更新日時"
+  ];
+
+  function buildSampleCsv(requests) {
+    var rows = [];
+    requests.forEach(function (r) {
+      var base = [
+        r.id, r.requestNo, r.requestDate, r.destination, r.requesterEmployeeNumber, r.requesterName,
+        r.requesterDepartment, r.responsibleCode, r.responsibleName, r.purpose, r.purposeOtherText,
+        r.currentVendor, r.currentProduct, r.notes, r.planningComment, r.logisticsComment, r.reviewDate,
+        r.planningProcessedDate, r.logisticsProcessedDate, r.status
+      ];
+      if (!r.items || r.items.length === 0) {
+        rows.push(base.concat([null, null, null, null, null, null, null, null, null, null, null, null, null, null, r.createdAt, r.updatedAt]));
+        return;
+      }
+      r.items.forEach(function (item, index) {
+        rows.push(base.concat([
+          index + 1, item.sampleManagementNo, item.makerCode, item.productCode, item.productName,
+          item.packingUnit, item.janCode, item.requestQuantity, item.requestUnit, item.customerCode,
+          item.customerName, item.plannedPrice, item.plannedQuantity, item.plannedDate, r.createdAt, r.updatedAt
+        ]));
+      });
+    });
+    return toCsv(SAMPLE_CSV_HEADERS, rows);
   }
 
   function renderSampleList() {

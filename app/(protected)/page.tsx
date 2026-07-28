@@ -78,6 +78,35 @@ export default async function MainMenuPage() {
             </div>
           </div>
         )}
+
+        {user?.role === "企画" && (
+          <div className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+            <h2 className="text-lg font-semibold text-slate-900">データエクスポート</h2>
+            <p className="mt-2 text-sm text-slate-600">
+              各モジュールの申請データをCSVで一括ダウンロードします（企画権限のみ）。
+            </p>
+            <div className="mt-4 flex flex-wrap gap-3 text-sm font-medium">
+              <a
+                href="/api/export/tokka"
+                className="rounded-md border border-slate-300 px-3 py-1.5 text-slate-700 hover:bg-slate-50"
+              >
+                特価申請CSV
+              </a>
+              <a
+                href="/api/export/fuguai"
+                className="rounded-md border border-slate-300 px-3 py-1.5 text-slate-700 hover:bg-slate-50"
+              >
+                不具合処理依頼CSV
+              </a>
+              <a
+                href="/api/export/sample"
+                className="rounded-md border border-slate-300 px-3 py-1.5 text-slate-700 hover:bg-slate-50"
+              >
+                サンプル依頼CSV
+              </a>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
