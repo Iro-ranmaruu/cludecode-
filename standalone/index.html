@@ -197,6 +197,8 @@
   .auth-card h1 { font-size: 18px; }
   .auth-logo { display: flex; justify-content: center; margin: 0 auto 14px; }
   .auth-logo .wism-product-logo { height: 72px; width: auto; }
+  .company-logo { display: inline-flex; align-items: center; }
+  .company-logo .wism-mutoh-logo { height: 22px; width: auto; }
   .auth-form { display: flex; flex-direction: column; gap: 12px; margin-top: 16px; }
   .demo-hint { margin: 0 0 16px; padding: 10px 12px; border-radius: 8px; background: var(--accent-soft); border: 1px solid var(--accent-soft-line); color: var(--accent-ink); font-size: 12.5px; line-height: 1.6; }
   .demo-hint strong { font-variant-numeric: tabular-nums; }
@@ -475,7 +477,8 @@
       '<a data-link href="#/sample/requests">サンプル申請</a>' +
       '<span class="nav-divider"></span>' +
       '<span class="nav-user">' + esc(user.name) + '（' + esc(user.employeeNumber) + '・' + esc(user.role) + '）</span>' +
-      '<button type="button" class="logout-btn" id="logout-btn">ログアウト</button>';
+      '<button type="button" class="logout-btn" id="logout-btn">ログアウト</button>' +
+      '<span class="company-logo">' + WISM_MUTOH_LOGO_SVG + '</span>';
     var logoutBtn = document.getElementById("logout-btn");
     if (logoutBtn) {
       logoutBtn.addEventListener("click", function () {
@@ -509,6 +512,14 @@
         '<rect x="11" y="348" width="50" height="50" rx="7"/><rect x="77" y="348" width="50" height="50" rx="7"/><rect x="143" y="348" width="50" height="50" rx="7"/><rect x="209" y="348" width="50" height="50" rx="7"/><rect x="275" y="348" width="50" height="50" rx="7"/>' +
         '<rect x="11" y="414" width="50" height="50" rx="7"/><rect x="77" y="414" width="50" height="50" rx="7"/><rect x="143" y="414" width="50" height="50" rx="7"/><rect x="209" y="414" width="50" height="50" rx="7"/><rect x="275" y="414" width="50" height="50" rx="7"/>' +
       '</g>' +
+    '</svg>';
+
+  var WISM_MUTOH_LOGO_SVG =
+    '<svg viewBox="0 0 980 190" role="img" aria-label="WiSM 株式会社ムトウ" class="wism-mutoh-logo">' +
+      '<text x="0" y="150" font-family="Georgia, \'Times New Roman\', serif" font-weight="700" font-size="140" fill="#e2231a" letter-spacing="1">WiSM</text>' +
+      '<text x="392" y="78" font-family="\'Hiragino Kaku Gothic ProN\',\'Hiragino Sans\',\'Yu Gothic\',\'Noto Sans JP\',Meiryo,sans-serif" font-weight="700" font-size="42" fill="#1a56a8">株式</text>' +
+      '<text x="392" y="128" font-family="\'Hiragino Kaku Gothic ProN\',\'Hiragino Sans\',\'Yu Gothic\',\'Noto Sans JP\',Meiryo,sans-serif" font-weight="700" font-size="42" fill="#1a56a8">会社</text>' +
+      '<text x="500" y="160" font-family="\'Hiragino Kaku Gothic ProN\',\'Hiragino Sans\',\'Yu Gothic\',\'Noto Sans JP\',Meiryo,sans-serif" font-weight="900" font-size="150" fill="#1560ac" letter-spacing="-4">ムトウ</text>' +
     '</svg>';
 
   function renderAuthView() {

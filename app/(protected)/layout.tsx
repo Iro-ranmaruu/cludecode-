@@ -47,6 +47,8 @@ export default async function ProtectedLayout({
                 ログアウト
               </button>
             </form>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/wism-mutoh-logo.svg" alt="WiSM 株式会社ムトウ" className="h-6 w-auto" />
           </nav>
         </div>
       </header>
