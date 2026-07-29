@@ -18,24 +18,16 @@ export default async function RequestsPage() {
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-10 sm:px-6">
-      <div className="mb-6 flex items-center justify-between">
-        <div>
-          <h1 className="text-xl font-bold text-slate-900">特価申請 処理状況一覧</h1>
-          <p className="mt-1 text-sm text-slate-600">
-            {user.role === "企画"
-              ? "営業から届いた特価申請です。クリックすると詳細・承認画面へ移動します。"
-              : "あなたが申請した特価申請の一覧です。"}
-          </p>
-        </div>
-        <div className="flex items-center gap-3">
-          {user.role === "企画" && (
-            <a
-              href="/api/export/tokka"
-              className="rounded-md border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
-            >
-              CSVダウンロード
-            </a>
-          )}
+      <div className="mb-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-xl font-bold text-slate-900">特価申請 処理状況一覧</h1>
+            <p className="mt-1 text-sm text-slate-600">
+              {user.role === "企画"
+                ? "営業から届いた特価申請です。クリックすると詳細・承認画面へ移動します。"
+                : "あなたが申請した特価申請の一覧です。"}
+            </p>
+          </div>
           <Link
             href="/tokka/new"
             className="rounded-md bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-700"
@@ -43,6 +35,44 @@ export default async function RequestsPage() {
             + 新規申請
           </Link>
         </div>
+
+        {user.role === "企画" && (
+          <form
+            action="/api/export/tokka"
+            method="GET"
+            className="mt-4 flex flex-wrap items-end gap-3 rounded-md border border-slate-200 bg-white px-4 py-3"
+          >
+            <div>
+              <label className="mb-1 block text-xs font-medium text-slate-500">
+                申請日（開始）
+              </label>
+              <input
+                type="date"
+                name="from"
+                className="rounded-md border border-slate-300 px-2 py-1.5 text-sm"
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium text-slate-500">
+                申請日（終了）
+              </label>
+              <input
+                type="date"
+                name="to"
+                className="rounded-md border border-slate-300 px-2 py-1.5 text-sm"
+              />
+            </div>
+            <button
+              type="submit"
+              className="rounded-md border border-slate-300 bg-white px-4 py-1.5 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+            >
+              CSVダウンロード
+            </button>
+            <p className="basis-full text-xs text-slate-400">
+              期間を指定しない場合は全期間のデータをダウンロードします。
+            </p>
+          </form>
+        )}
       </div>
 
       {requests.length === 0 ? (

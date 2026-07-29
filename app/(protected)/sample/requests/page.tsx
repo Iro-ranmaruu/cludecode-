@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { listSampleRequests } from "@/lib/sample-repo";
 import { getCurrentUser } from "@/lib/session";
+import { DESTINATION_OPTIONS } from "@/lib/sample-types";
 import SampleStatusBadge from "@/components/SampleStatusBadge";
 
 export const dynamic = "force-dynamic";
@@ -15,24 +16,16 @@ export default async function SampleRequestsPage() {
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-10 sm:px-6">
-      <div className="mb-6 flex items-center justify-between">
-        <div>
-          <h1 className="text-xl font-bold text-slate-900">サンプル依頼 処理状況一覧</h1>
-          <p className="mt-1 text-sm text-slate-600">
-            {user.role === "企画"
-              ? "営業から届いたサンプル依頼です。クリックすると詳細画面へ移動します。"
-              : "あなたが申請したサンプル依頼の一覧です。"}
-          </p>
-        </div>
-        <div className="flex items-center gap-3">
-          {user.role === "企画" && (
-            <a
-              href="/api/export/sample"
-              className="rounded-md border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
-            >
-              CSVダウンロード
-            </a>
-          )}
+      <div className="mb-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-xl font-bold text-slate-900">サンプル依頼 処理状況一覧</h1>
+            <p className="mt-1 text-sm text-slate-600">
+              {user.role === "企画"
+                ? "営業から届いたサンプル依頼です。クリックすると詳細画面へ移動します。"
+                : "あなたが申請したサンプル依頼の一覧です。"}
+            </p>
+          </div>
           <Link
             href="/sample/new"
             className="rounded-md bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-700"
@@ -40,6 +33,61 @@ export default async function SampleRequestsPage() {
             + 新規申請
           </Link>
         </div>
+
+        {user.role === "企画" && (
+          <form
+            action="/api/export/sample"
+            method="GET"
+            className="mt-4 flex flex-wrap items-end gap-3 rounded-md border border-slate-200 bg-white px-4 py-3"
+          >
+            <div>
+              <label className="mb-1 block text-xs font-medium text-slate-500">
+                申請日（開始）
+              </label>
+              <input
+                type="date"
+                name="from"
+                className="rounded-md border border-slate-300 px-2 py-1.5 text-sm"
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium text-slate-500">
+                申請日（終了）
+              </label>
+              <input
+                type="date"
+                name="to"
+                className="rounded-md border border-slate-300 px-2 py-1.5 text-sm"
+              />
+            </div>
+            <div>
+              <span className="mb-1 block text-xs font-medium text-slate-500">申請先</span>
+              <div className="flex flex-wrap gap-3 pt-1.5">
+                {DESTINATION_OPTIONS.map((d) => (
+                  <label key={d} className="flex items-center gap-1.5 text-sm text-slate-700">
+                    <input
+                      type="checkbox"
+                      name="destinations"
+                      value={d}
+                      defaultChecked
+                      className="h-4 w-4 rounded border-slate-300"
+                    />
+                    {d}
+                  </label>
+                ))}
+              </div>
+            </div>
+            <button
+              type="submit"
+              className="rounded-md border border-slate-300 bg-white px-4 py-1.5 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+            >
+              CSVダウンロード
+            </button>
+            <p className="basis-full text-xs text-slate-400">
+              期間を指定しない場合は全期間、申請先をすべて選択すると全国分のデータをダウンロードします。
+            </p>
+          </form>
+        )}
       </div>
 
       {requests.length === 0 ? (

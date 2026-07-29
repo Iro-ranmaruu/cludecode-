@@ -21,3 +21,15 @@ export function csvResponseHeaders(filename: string): HeadersInit {
     "Content-Disposition": `attachment; filename="${filename}"`,
   };
 }
+
+export function inDateRange(
+  dateStr: string | null | undefined,
+  from: string,
+  to: string
+): boolean {
+  if (!from && !to) return true;
+  if (!dateStr) return false;
+  if (from && dateStr < from) return false;
+  if (to && dateStr > to) return false;
+  return true;
+}

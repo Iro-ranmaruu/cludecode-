@@ -202,6 +202,13 @@
   .auth-form { display: flex; flex-direction: column; gap: 12px; margin-top: 16px; }
   .demo-hint { margin: 0 0 16px; padding: 10px 12px; border-radius: 8px; background: var(--accent-soft); border: 1px solid var(--accent-soft-line); color: var(--accent-ink); font-size: 12.5px; line-height: 1.6; }
   .demo-hint strong { font-variant-numeric: tabular-nums; }
+
+  .csv-filter-bar { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 14px; margin-top: 14px; padding: 12px 14px; border: 1px solid var(--line); border-radius: 9px; background: var(--surface); box-shadow: var(--shadow-sm); }
+  .csv-filter-bar .field-label { margin-bottom: 4px; }
+  .csv-filter-bar input[type="date"] { padding: 6px 8px; font-size: 12.5px; width: auto; }
+  .csv-filter-bar .dest-checks { display: flex; flex-wrap: wrap; gap: 4px 14px; padding-top: 2px; }
+  .csv-filter-bar .dest-checks label { display: flex; align-items: center; gap: 5px; font-size: 12.5px; color: var(--ink); cursor: pointer; }
+  .csv-filter-bar .csv-filter-note { basis: 100%; width: 100%; font-size: 11.5px; color: var(--ink-soft); margin-top: 2px; }
 </style>
 </head>
 <body>
@@ -251,6 +258,14 @@
     var lines = [headers.map(csvCell).join(",")];
     rows.forEach(function (row) { lines.push(row.map(csvCell).join(",")); });
     return String.fromCharCode(0xfeff) + lines.join("\r\n");
+  }
+
+  function inDateRange(dateStr, from, to) {
+    if (!from && !to) return true;
+    if (!dateStr) return false;
+    if (from && dateStr < from) return false;
+    if (to && dateStr > to) return false;
+    return true;
   }
 
   function downloadCsv(filename, csvText) {
@@ -765,13 +780,19 @@
     }).join("");
 
     mount(
-      '<div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:24px; flex-wrap:wrap; gap:8px;">' +
+      '<div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; flex-wrap:wrap; gap:8px;">' +
         '<div><h1>特価申請 処理状況一覧</h1><p class="muted">' + (isPlanning(user) ? "営業から届いた特価申請です。クリックすると詳細・承認画面へ移動します。" : "あなたが申請した特価申請の一覧です。") + '</p></div>' +
-        '<div style="display:flex; gap:8px;">' +
-          (isPlanning(user) ? '<button type="button" id="export-tokka-csv" class="btn btn-secondary">CSVダウンロード</button>' : "") +
-          '<a data-link href="#/tokka/new" class="btn btn-primary" style="text-decoration:none; display:inline-block;">+ 新規申請</a>' +
-        '</div>' +
+        '<a data-link href="#/tokka/new" class="btn btn-primary" style="text-decoration:none; display:inline-block;">+ 新規申請</a>' +
       '</div>' +
+      (isPlanning(user)
+        ? '<div class="csv-filter-bar">' +
+            '<div>' + fieldLabel("申請日（開始）") + '<input type="date" id="tokka-csv-from" /></div>' +
+            '<div>' + fieldLabel("申請日（終了）") + '<input type="date" id="tokka-csv-to" /></div>' +
+            '<button type="button" id="export-tokka-csv" class="btn btn-secondary">CSVダウンロード</button>' +
+            '<span class="csv-filter-note">期間を指定しない場合は全期間のデータをダウンロードします。</span>' +
+          '</div>'
+        : "") +
+      '<div style="margin-top:20px;"></div>' +
       (requests.length === 0
         ? '<div class="empty-box">まだ申請がありません。</div>'
         : '<div class="table-wrap"><table><thead><tr><th>申請日</th><th>店所名</th><th>担当者名</th><th>得意先施設名</th><th>商品数</th><th>ステータス</th></tr></thead><tbody>' + rowsHtml + '</tbody></table></div>')
@@ -781,7 +802,10 @@
       var exportTokkaBtn = document.getElementById("export-tokka-csv");
       if (exportTokkaBtn) {
         exportTokkaBtn.addEventListener("click", function () {
-          downloadCsv("tokka_requests_" + new Date().toISOString().slice(0, 10) + ".csv", buildTokkaCsv(all));
+          var from = document.getElementById("tokka-csv-from").value;
+          var to = document.getElementById("tokka-csv-to").value;
+          var filtered = all.filter(function (r) { return inDateRange(r.applicationDate, from, to); });
+          downloadCsv("tokka_requests_" + new Date().toISOString().slice(0, 10) + ".csv", buildTokkaCsv(filtered));
         });
       }
     }
@@ -1065,13 +1089,19 @@
     }).join("");
 
     mount(
-      '<div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:24px; flex-wrap:wrap; gap:8px;">' +
+      '<div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; flex-wrap:wrap; gap:8px;">' +
         '<div><h1>不具合処理依頼 処理状況一覧</h1><p class="muted">' + (isPlanning(user) ? "営業から届いた不具合処理依頼です。クリックすると詳細画面へ移動します。" : "あなたが依頼した不具合処理依頼の一覧です。") + '</p></div>' +
-        '<div style="display:flex; gap:8px;">' +
-          (isPlanning(user) ? '<button type="button" id="export-fuguai-csv" class="btn btn-secondary">CSVダウンロード</button>' : "") +
-          '<a data-link href="#/fuguai/new" class="btn btn-primary" style="text-decoration:none; display:inline-block;">+ 新規依頼</a>' +
-        '</div>' +
+        '<a data-link href="#/fuguai/new" class="btn btn-primary" style="text-decoration:none; display:inline-block;">+ 新規依頼</a>' +
       '</div>' +
+      (isPlanning(user)
+        ? '<div class="csv-filter-bar">' +
+            '<div>' + fieldLabel("依頼日（開始）") + '<input type="date" id="fuguai-csv-from" /></div>' +
+            '<div>' + fieldLabel("依頼日（終了）") + '<input type="date" id="fuguai-csv-to" /></div>' +
+            '<button type="button" id="export-fuguai-csv" class="btn btn-secondary">CSVダウンロード</button>' +
+            '<span class="csv-filter-note">期間を指定しない場合は全期間のデータをダウンロードします。</span>' +
+          '</div>'
+        : "") +
+      '<div style="margin-top:20px;"></div>' +
       (requests.length === 0
         ? '<div class="empty-box">まだ依頼がありません。</div>'
         : '<div class="table-wrap"><table><thead><tr><th>依頼日</th><th>店所名</th><th>担当者名</th><th>得意先施設名</th><th>商品数</th><th>ステータス</th></tr></thead><tbody>' + rowsHtml + '</tbody></table></div>')
@@ -1081,7 +1111,10 @@
       var exportFuguaiBtn = document.getElementById("export-fuguai-csv");
       if (exportFuguaiBtn) {
         exportFuguaiBtn.addEventListener("click", function () {
-          downloadCsv("fuguai_requests_" + new Date().toISOString().slice(0, 10) + ".csv", buildFuguaiCsv(all));
+          var from = document.getElementById("fuguai-csv-from").value;
+          var to = document.getElementById("fuguai-csv-to").value;
+          var filtered = all.filter(function (r) { return inDateRange(r.requestDate, from, to); });
+          downloadCsv("fuguai_requests_" + new Date().toISOString().slice(0, 10) + ".csv", buildFuguaiCsv(filtered));
         });
       }
     }
@@ -1341,13 +1374,24 @@
     }).join("");
 
     mount(
-      '<div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:24px; flex-wrap:wrap; gap:8px;">' +
+      '<div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; flex-wrap:wrap; gap:8px;">' +
         '<div><h1>サンプル申請 処理状況一覧</h1><p class="muted">' + (isPlanning(user) ? "営業から届いたサンプル申請です。クリックすると詳細画面へ移動します。" : "あなたが申請したサンプル申請の一覧です。") + '</p></div>' +
-        '<div style="display:flex; gap:8px;">' +
-          (isPlanning(user) ? '<button type="button" id="export-sample-csv" class="btn btn-secondary">CSVダウンロード</button>' : "") +
-          '<a data-link href="#/sample/new" class="btn btn-primary" style="text-decoration:none; display:inline-block;">+ 新規申請</a>' +
-        '</div>' +
+        '<a data-link href="#/sample/new" class="btn btn-primary" style="text-decoration:none; display:inline-block;">+ 新規申請</a>' +
       '</div>' +
+      (isPlanning(user)
+        ? '<div class="csv-filter-bar">' +
+            '<div>' + fieldLabel("申請日（開始）") + '<input type="date" id="sample-csv-from" /></div>' +
+            '<div>' + fieldLabel("申請日（終了）") + '<input type="date" id="sample-csv-to" /></div>' +
+            '<div>' + fieldLabel("申請先") +
+              '<div class="dest-checks">' +
+                DESTINATION_OPTIONS.map(function (d) { return '<label><input type="checkbox" class="sample-csv-dest" value="' + d + '" checked /> ' + d + '</label>'; }).join("") +
+              '</div>' +
+            '</div>' +
+            '<button type="button" id="export-sample-csv" class="btn btn-secondary">CSVダウンロード</button>' +
+            '<span class="csv-filter-note">期間を指定しない場合は全期間、申請先をすべて選択すると全国分のデータをダウンロードします。</span>' +
+          '</div>'
+        : "") +
+      '<div style="margin-top:20px;"></div>' +
       (requests.length === 0
         ? '<div class="empty-box">まだ申請がありません。</div>'
         : '<div class="table-wrap"><table><thead><tr><th>申請番号</th><th>申請日</th><th>申請先</th><th>申請者</th><th>明細数</th><th>ステータス</th></tr></thead><tbody>' + rowsHtml + '</tbody></table></div>')
@@ -1357,7 +1401,13 @@
       var exportSampleBtn = document.getElementById("export-sample-csv");
       if (exportSampleBtn) {
         exportSampleBtn.addEventListener("click", function () {
-          downloadCsv("sample_requests_" + new Date().toISOString().slice(0, 10) + ".csv", buildSampleCsv(all));
+          var from = document.getElementById("sample-csv-from").value;
+          var to = document.getElementById("sample-csv-to").value;
+          var checkedDest = Array.prototype.slice.call(document.querySelectorAll(".sample-csv-dest:checked")).map(function (el) { return el.value; });
+          var filtered = all
+            .filter(function (r) { return inDateRange(r.requestDate, from, to); })
+            .filter(function (r) { return checkedDest.length === 0 || checkedDest.indexOf(r.destination || "") !== -1; });
+          downloadCsv("sample_requests_" + new Date().toISOString().slice(0, 10) + ".csv", buildSampleCsv(filtered));
         });
       }
     }

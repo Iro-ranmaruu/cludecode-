@@ -1,7 +1,7 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/session";
 import { listDefectRequests } from "@/lib/defect-repo";
-import { toCsv, csvResponseHeaders } from "@/lib/csv-export";
+import { toCsv, csvResponseHeaders, inDateRange } from "@/lib/csv-export";
 
 const HEADERS = [
   "依頼ID",
@@ -37,7 +37,7 @@ const HEADERS = [
   "更新日時",
 ];
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   const user = await getCurrentUser();
   if (!user) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
@@ -46,7 +46,10 @@ export async function GET() {
     return NextResponse.json({ error: "forbidden" }, { status: 403 });
   }
 
-  const requests = listDefectRequests();
+  const from = request.nextUrl.searchParams.get("from") || "";
+  const to = request.nextUrl.searchParams.get("to") || "";
+
+  const requests = listDefectRequests().filter((r) => inDateRange(r.requestDate, from, to));
   const rows: (string | number | null)[][] = [];
   for (const r of requests) {
     const base = [
