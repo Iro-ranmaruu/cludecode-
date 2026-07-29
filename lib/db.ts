@@ -32,6 +32,7 @@ db.exec(`
     name TEXT NOT NULL,
     branch_name TEXT,
     role TEXT NOT NULL DEFAULT '営業',
+    email TEXT,
     created_at TEXT NOT NULL
   );
 
@@ -192,6 +193,14 @@ db.exec(`
 
   CREATE INDEX IF NOT EXISTS idx_sample_request_items_request_id ON sample_request_items(sample_request_id);
 `);
+
+function migrateUsersEmailColumn() {
+  const columns = db.prepare(`PRAGMA table_info(users)`).all() as { name: string }[];
+  if (columns.some((c) => c.name === "email")) return;
+  db.exec(`ALTER TABLE users ADD COLUMN email TEXT`);
+}
+
+migrateUsersEmailColumn();
 
 function seedProductMasterIfEmpty() {
   const row = db.prepare(`SELECT COUNT(*) AS cnt FROM product_master`).get() as {

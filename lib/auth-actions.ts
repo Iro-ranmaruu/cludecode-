@@ -59,10 +59,14 @@ export async function registerAction(
   const passwordConfirm = str(formData, "passwordConfirm");
   const name = str(formData, "name").trim();
   const branchName = str(formData, "branchName").trim();
+  const email = str(formData, "email").trim();
   const role = str(formData, "role") === "企画" ? "企画" : "営業";
 
-  if (!employeeNumber || !password || !name || !branchName) {
-    return { error: "社員番号・氏名・店所名・パスワードを入力してください" };
+  if (!employeeNumber || !password || !name || !branchName || !email) {
+    return { error: "社員番号・氏名・店所名・メールアドレス・パスワードを入力してください" };
+  }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return { error: "メールアドレスの形式が正しくありません" };
   }
   if (password.length < 4) {
     return { error: "パスワードは4文字以上で入力してください" };
@@ -74,7 +78,7 @@ export async function registerAction(
     return { error: "この社員番号は既に登録されています。ログインしてください" };
   }
 
-  const user = createUser({ employeeNumber, password, name, branchName, role });
+  const user = createUser({ employeeNumber, password, name, branchName, role, email });
   await setSessionCookie(user.id);
   redirect("/");
 }

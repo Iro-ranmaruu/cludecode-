@@ -90,6 +90,13 @@ export default function LoginForm() {
             <input name="branchName" required className={inputCls} />
           </div>
           <div>
+            <label className={labelCls}>メールアドレス</label>
+            <input type="email" name="email" required className={inputCls} />
+            <p className="mt-1 text-[11px] text-slate-400">
+              申請の処理結果メールの送信先として使用します
+            </p>
+          </div>
+          <div>
             <label className={labelCls}>権限</label>
             <div className="flex gap-4 text-sm">
               <label className="flex items-center gap-1.5">

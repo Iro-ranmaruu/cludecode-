@@ -2,8 +2,13 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { createSampleRequest, updateSampleRequestProcessing } from "@/lib/sample-repo";
+import {
+  createSampleRequest,
+  getSampleRequestById,
+  updateSampleRequestProcessing,
+} from "@/lib/sample-repo";
 import { getCurrentUser } from "@/lib/session";
+import { notifySampleStatusChange } from "@/lib/notifications";
 import type { SampleItemInput, SampleRequestInput, SampleStatus } from "@/lib/sample-types";
 
 function str(formData: FormData, key: string): string {
@@ -74,6 +79,8 @@ export async function submitSampleRequestAction(formData: FormData) {
 export async function updateSampleProcessingAction(formData: FormData) {
   const requestId = str(formData, "requestId");
 
+  const before = getSampleRequestById(requestId);
+
   updateSampleRequestProcessing(requestId, {
     status: str(formData, "status") as SampleStatus,
     planningComment: str(formData, "planningComment"),
@@ -85,4 +92,9 @@ export async function updateSampleProcessingAction(formData: FormData) {
 
   revalidatePath(`/sample/requests/${requestId}`);
   revalidatePath("/sample/requests");
+
+  const after = getSampleRequestById(requestId);
+  if (after && before && before.status !== after.status) {
+    await notifySampleStatusChange(after);
+  }
 }

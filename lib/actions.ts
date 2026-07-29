@@ -4,10 +4,12 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import {
   createRequest,
+  getRequestById,
   updateItemDecision,
   updatePlanningRemarks,
 } from "@/lib/requests-repo";
 import { getCurrentUser } from "@/lib/session";
+import { notifyTokkaStatusChange } from "@/lib/notifications";
 import type { ItemDecision, RequestInput, RequestItemInput } from "@/lib/types";
 
 function str(formData: FormData, key: string): string {
@@ -105,6 +107,8 @@ export async function updateItemDecisionAction(formData: FormData) {
   const decision = str(formData, "decision") as ItemDecision;
   const decidedWholesalePrice = str(formData, "decidedWholesalePrice");
 
+  const before = getRequestById(requestId);
+
   updateItemDecision(
     itemId,
     decision,
@@ -113,6 +117,11 @@ export async function updateItemDecisionAction(formData: FormData) {
 
   revalidatePath(`/tokka/requests/${requestId}`);
   revalidatePath("/tokka/requests");
+
+  const after = getRequestById(requestId);
+  if (after && before && before.status !== after.status) {
+    await notifyTokkaStatusChange(after);
+  }
 }
 
 export async function updatePlanningRemarksAction(formData: FormData) {

@@ -9,6 +9,7 @@ export interface UserRecord {
   name: string;
   branchName: string | null;
   role: UserRole;
+  email: string | null;
 }
 
 const SESSION_TTL_MS = 1000 * 60 * 60 * 24 * 14; // 14 days
@@ -25,6 +26,7 @@ function rowToUser(row: any): UserRecord {
     name: row.name,
     branchName: row.branch_name,
     role: row.role,
+    email: row.email,
   };
 }
 
@@ -36,12 +38,21 @@ export function findUserByEmployeeNumber(employeeNumber: string): UserRecord | n
   return row ? rowToUser(row) : null;
 }
 
+export function getUserById(userId: string): UserRecord | null {
+  const row = db
+    .prepare(`SELECT * FROM users WHERE id = ?`)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    .get(userId) as any;
+  return row ? rowToUser(row) : null;
+}
+
 export function createUser(input: {
   employeeNumber: string;
   password: string;
   name: string;
   branchName: string;
   role: UserRole;
+  email: string;
 }): UserRecord {
   const existing = db
     .prepare(`SELECT id FROM users WHERE employee_number = ?`)
@@ -55,8 +66,8 @@ export function createUser(input: {
   const id = randomUUID();
 
   db.prepare(
-    `INSERT INTO users (id, employee_number, password_hash, password_salt, name, branch_name, role, created_at)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
+    `INSERT INTO users (id, employee_number, password_hash, password_salt, name, branch_name, role, email, created_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
   ).run(
     id,
     input.employeeNumber,
@@ -65,10 +76,18 @@ export function createUser(input: {
     input.name,
     input.branchName,
     input.role,
+    input.email,
     new Date().toISOString()
   );
 
-  return { id, employeeNumber: input.employeeNumber, name: input.name, branchName: input.branchName, role: input.role };
+  return {
+    id,
+    employeeNumber: input.employeeNumber,
+    name: input.name,
+    branchName: input.branchName,
+    role: input.role,
+    email: input.email,
+  };
 }
 
 export function verifyPassword(employeeNumber: string, password: string): UserRecord | null {

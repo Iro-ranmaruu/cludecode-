@@ -2,8 +2,13 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { createDefectRequest, updateDefectRequestStatus } from "@/lib/defect-repo";
+import {
+  createDefectRequest,
+  getDefectRequestById,
+  updateDefectRequestStatus,
+} from "@/lib/defect-repo";
 import { getCurrentUser } from "@/lib/session";
+import { notifyFuguaiStatusChange } from "@/lib/notifications";
 import type { DefectItemInput, DefectRequestInput, DefectStatus } from "@/lib/defect-types";
 
 function str(formData: FormData, key: string): string {
@@ -77,8 +82,15 @@ export async function updateDefectStatusAction(formData: FormData) {
   const status = str(formData, "status") as DefectStatus;
   const planningComment = str(formData, "planningComment");
 
+  const before = getDefectRequestById(requestId);
+
   updateDefectRequestStatus(requestId, status, planningComment);
 
   revalidatePath(`/fuguai/requests/${requestId}`);
   revalidatePath("/fuguai/requests");
+
+  const after = getDefectRequestById(requestId);
+  if (after && before && before.status !== after.status) {
+    await notifyFuguaiStatusChange(after);
+  }
 }
