@@ -1343,12 +1343,24 @@
     mount(
       '<div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:24px; flex-wrap:wrap; gap:8px;">' +
         '<div><h1>サンプル申請 処理状況一覧</h1><p class="muted">' + (isPlanning(user) ? "営業から届いたサンプル申請です。クリックすると詳細画面へ移動します。" : "あなたが申請したサンプル申請の一覧です。") + '</p></div>' +
-        '<a data-link href="#/sample/new" class="btn btn-primary" style="text-decoration:none; display:inline-block;">+ 新規申請</a>' +
+        '<div style="display:flex; gap:8px;">' +
+          (isPlanning(user) ? '<button type="button" id="export-sample-csv" class="btn btn-secondary">CSVダウンロード</button>' : "") +
+          '<a data-link href="#/sample/new" class="btn btn-primary" style="text-decoration:none; display:inline-block;">+ 新規申請</a>' +
+        '</div>' +
       '</div>' +
       (requests.length === 0
         ? '<div class="empty-box">まだ申請がありません。</div>'
         : '<div class="table-wrap"><table><thead><tr><th>申請番号</th><th>申請日</th><th>申請先</th><th>申請者</th><th>明細数</th><th>ステータス</th></tr></thead><tbody>' + rowsHtml + '</tbody></table></div>')
     );
+
+    if (isPlanning(user)) {
+      var exportSampleBtn = document.getElementById("export-sample-csv");
+      if (exportSampleBtn) {
+        exportSampleBtn.addEventListener("click", function () {
+          downloadCsv("sample_requests_" + new Date().toISOString().slice(0, 10) + ".csv", buildSampleCsv(all));
+        });
+      }
+    }
   }
 
   function renderSampleDetail(id, showSubmitted) {
