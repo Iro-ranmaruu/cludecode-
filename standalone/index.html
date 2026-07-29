@@ -195,10 +195,8 @@
 
   .auth-card { width: 100%; max-width: 380px; border: 1px solid var(--line); border-top: 3px solid var(--accent); background: var(--surface); border-radius: var(--radius); padding: 28px; box-shadow: var(--shadow-md); }
   .auth-card h1 { font-size: 18px; }
-  .auth-mark { width: 44px; height: 44px; margin: 0 auto 16px; position: relative; border-radius: 12px; background: linear-gradient(135deg, var(--accent) 0%, var(--accent-ink) 100%); box-shadow: var(--shadow-sm); }
-  .auth-mark::before, .auth-mark::after { content: ""; position: absolute; background: #fff; border-radius: 1.5px; }
-  .auth-mark::before { left: 50%; top: 10px; bottom: 10px; width: 4px; transform: translateX(-50%); }
-  .auth-mark::after { top: 50%; left: 10px; right: 10px; height: 4px; transform: translateY(-50%); }
+  .auth-logo { display: flex; justify-content: center; margin: 0 auto 14px; }
+  .auth-logo .wism-product-logo { height: 72px; width: auto; }
   .auth-form { display: flex; flex-direction: column; gap: 12px; margin-top: 16px; }
   .demo-hint { margin: 0 0 16px; padding: 10px 12px; border-radius: 8px; background: var(--accent-soft); border: 1px solid var(--accent-soft-line); color: var(--accent-ink); font-size: 12.5px; line-height: 1.6; }
   .demo-hint strong { font-variant-numeric: tabular-nums; }
@@ -501,10 +499,22 @@
     return appEl;
   }
 
+  var WISM_PRODUCT_LOGO_SVG =
+    '<svg viewBox="0 0 336 470" role="img" aria-label="WiSM" class="wism-product-logo">' +
+      '<text x="168" y="112" text-anchor="middle" font-family="Georgia, \'Times New Roman\', serif" font-weight="700" font-size="122" fill="#1a56a8" letter-spacing="1">WiSM</text>' +
+      '<g fill="#3a6bb5">' +
+        '<rect x="11" y="150" width="50" height="50" rx="7"/><rect x="77" y="150" width="50" height="50" rx="7"/><rect x="143" y="150" width="50" height="50" rx="7"/><rect x="209" y="150" width="50" height="50" rx="7"/><rect x="275" y="150" width="50" height="50" rx="7"/>' +
+        '<rect x="11" y="216" width="50" height="50" rx="7"/><rect x="77" y="216" width="50" height="50" rx="7"/><rect x="143" y="216" width="50" height="50" rx="7"/><rect x="209" y="216" width="50" height="50" rx="7"/><rect x="275" y="216" width="50" height="50" rx="7"/>' +
+        '<rect x="11" y="282" width="50" height="50" rx="7"/><rect x="77" y="282" width="50" height="50" rx="7"/><rect x="143" y="282" width="50" height="50" rx="7"/><rect x="209" y="282" width="50" height="50" rx="7"/><rect x="275" y="282" width="50" height="50" rx="7"/>' +
+        '<rect x="11" y="348" width="50" height="50" rx="7"/><rect x="77" y="348" width="50" height="50" rx="7"/><rect x="143" y="348" width="50" height="50" rx="7"/><rect x="209" y="348" width="50" height="50" rx="7"/><rect x="275" y="348" width="50" height="50" rx="7"/>' +
+        '<rect x="11" y="414" width="50" height="50" rx="7"/><rect x="77" y="414" width="50" height="50" rx="7"/><rect x="143" y="414" width="50" height="50" rx="7"/><rect x="209" y="414" width="50" height="50" rx="7"/><rect x="275" y="414" width="50" height="50" rx="7"/>' +
+      '</g>' +
+    '</svg>';
+
   function renderAuthView() {
     var html =
       '<div class="auth-card">' +
-        '<div class="auth-mark"></div>' +
+        '<div class="auth-logo">' + WISM_PRODUCT_LOGO_SVG + '</div>' +
         '<h1 style="text-align:center;">WiSM製品アプリ</h1>' +
         '<p class="muted-xs" style="margin-top:4px; text-align:center;">医療消耗品 直販ポータル ／ 社員番号とパスワードでログインしてください。</p>' +
         '<div id="auth-error"></div>' +

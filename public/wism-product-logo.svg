@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 336 470" role="img" aria-label="WiSM">
+  <title>WiSM</title>
+  <text x="168" y="112" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-weight="700" font-size="122" fill="#1a56a8" letter-spacing="1">WiSM</text>
+  <g fill="#3a6bb5">
+    <!-- 5x5 grid of rounded squares -->
+    <rect x="11" y="150" width="50" height="50" rx="7"/>
+    <rect x="77" y="150" width="50" height="50" rx="7"/>
+    <rect x="143" y="150" width="50" height="50" rx="7"/>
+    <rect x="209" y="150" width="50" height="50" rx="7"/>
+    <rect x="275" y="150" width="50" height="50" rx="7"/>
+
+    <rect x="11" y="216" width="50" height="50" rx="7"/>
+    <rect x="77" y="216" width="50" height="50" rx="7"/>
+    <rect x="143" y="216" width="50" height="50" rx="7"/>
+    <rect x="209" y="216" width="50" height="50" rx="7"/>
+    <rect x="275" y="216" width="50" height="50" rx="7"/>
+
+    <rect x="11" y="282" width="50" height="50" rx="7"/>
+    <rect x="77" y="282" width="50" height="50" rx="7"/>
+    <rect x="143" y="282" width="50" height="50" rx="7"/>
+    <rect x="209" y="282" width="50" height="50" rx="7"/>
+    <rect x="275" y="282" width="50" height="50" rx="7"/>
+
+    <rect x="11" y="348" width="50" height="50" rx="7"/>
+    <rect x="77" y="348" width="50" height="50" rx="7"/>
+    <rect x="143" y="348" width="50" height="50" rx="7"/>
+    <rect x="209" y="348" width="50" height="50" rx="7"/>
+    <rect x="275" y="348" width="50" height="50" rx="7"/>
+
+    <rect x="11" y="414" width="50" height="50" rx="7"/>
+    <rect x="77" y="414" width="50" height="50" rx="7"/>
+    <rect x="143" y="414" width="50" height="50" rx="7"/>
+    <rect x="209" y="414" width="50" height="50" rx="7"/>
+    <rect x="275" y="414" width="50" height="50" rx="7"/>
+  </g>
+</svg>

@@ -20,6 +20,8 @@ export default function LoginForm() {
 
   return (
     <div className="w-full max-w-sm rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src="/wism-product-logo.svg" alt="WiSM" className="mx-auto mb-4 h-20 w-auto" />
       <h1 className="text-lg font-bold text-slate-900">WiSM製品アプリ</h1>
       <p className="mt-1 text-xs text-slate-500">
         {mode === "login" ? "社員番号とパスワードでログインしてください。" : "初めての方はこちらからアカウントを作成してください。"}
