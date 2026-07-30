@@ -1,4 +1,5 @@
 import { getUserById } from "@/lib/auth";
+import { findEmployeeEmail } from "@/lib/employee-directory-repo";
 import { sendMail } from "@/lib/mailer";
 import { STATUS_LABEL, type RequestRecord } from "@/lib/types";
 import { DEFECT_STATUS_LABEL, type DefectRequestRecord } from "@/lib/defect-types";
@@ -7,7 +8,12 @@ import { SAMPLE_STATUS_LABEL, type SampleRequestRecord } from "@/lib/sample-type
 function recipientEmail(createdBy: string | null): string | null {
   if (!createdBy) return null;
   const user = getUserById(createdBy);
-  return user?.email || null;
+  if (!user) return null;
+  const directoryEmail = findEmployeeEmail({
+    employeeNumber: user.employeeNumber,
+    name: user.name,
+  });
+  return directoryEmail || user.email || null;
 }
 
 export async function notifyTokkaStatusChange(request: RequestRecord): Promise<void> {

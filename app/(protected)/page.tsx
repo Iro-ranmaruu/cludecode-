@@ -81,6 +81,23 @@ export default async function MainMenuPage() {
 
         {user?.role === "企画" && (
           <div className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+            <h2 className="text-lg font-semibold text-slate-900">人事台帳</h2>
+            <p className="mt-2 text-sm text-slate-600">
+              氏名・社員番号とメールアドレスを管理します。処理結果メールの宛先解決に使われます。
+            </p>
+            <div className="mt-4 flex gap-3 text-sm font-medium">
+              <Link
+                href="/employees"
+                className="rounded-md bg-slate-900 px-3 py-1.5 text-white hover:bg-slate-700"
+              >
+                人事台帳を開く
+              </Link>
+            </div>
+          </div>
+        )}
+
+        {user?.role === "企画" && (
+          <div className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
             <h2 className="text-lg font-semibold text-slate-900">データエクスポート</h2>
             <p className="mt-2 text-sm text-slate-600">
               各モジュールの申請データをCSVで一括ダウンロードします（企画権限のみ）。

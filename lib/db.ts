@@ -1,6 +1,7 @@
 import Database from "better-sqlite3";
 import path from "path";
 import fs from "fs";
+import { randomUUID } from "crypto";
 import { parseCsvText } from "@/lib/csv";
 
 const dataDir = path.join(process.cwd(), "data");
@@ -53,6 +54,17 @@ db.exec(`
     updated_at TEXT NOT NULL,
     PRIMARY KEY (maker_code, product_code)
   );
+
+  CREATE TABLE IF NOT EXISTS employee_directory (
+    id TEXT PRIMARY KEY,
+    employee_number TEXT,
+    name TEXT NOT NULL,
+    email TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+  );
+
+  CREATE INDEX IF NOT EXISTS idx_employee_directory_employee_number ON employee_directory(employee_number);
+  CREATE INDEX IF NOT EXISTS idx_employee_directory_name ON employee_directory(name);
 
   CREATE TABLE IF NOT EXISTS requests (
     id TEXT PRIMARY KEY,
@@ -261,5 +273,50 @@ function seedProductMasterIfEmpty() {
 }
 
 seedProductMasterIfEmpty();
+
+function seedEmployeeDirectoryIfEmpty() {
+  const row = db.prepare(`SELECT COUNT(*) AS cnt FROM employee_directory`).get() as {
+    cnt: number;
+  };
+  if (row.cnt > 0) return;
+
+  const seedPath = path.join(process.cwd(), "data-seed", "employee-directory.csv");
+  if (!fs.existsSync(seedPath)) return;
+
+  const text = fs.readFileSync(seedPath, "utf-8");
+  const lines = parseCsvText(text);
+  if (lines.length === 0) return;
+
+  const [header, ...dataRows] = lines;
+  const col = (name: string) => header.indexOf(name);
+  const iNumber = col("employee_number");
+  const iName = col("name");
+  const iEmail = col("email");
+  if (iName < 0 || iEmail < 0) return;
+
+  const insert = db.prepare(`
+    INSERT INTO employee_directory (id, employee_number, name, email, updated_at)
+    VALUES (@id, @employee_number, @name, @email, @updated_at)
+  `);
+
+  const now = new Date().toISOString();
+  const tx = db.transaction(() => {
+    for (const row of dataRows) {
+      const name = row[iName];
+      const email = row[iEmail];
+      if (!name || !email) continue;
+      insert.run({
+        id: randomUUID(),
+        employee_number: iNumber >= 0 ? row[iNumber] || null : null,
+        name,
+        email,
+        updated_at: now,
+      });
+    }
+  });
+  tx();
+}
+
+seedEmployeeDirectoryIfEmpty();
 
 export default db;
