@@ -35,7 +35,7 @@ export async function importEmployeeDirectoryCsvAction(formData: FormData) {
   let imported = 0;
   for (const line of lines) {
     const cells = parseCsvLine(line);
-    const [employeeNumber, name, email] = cells;
+    const [employeeNumber, name, email, branchName, branchCode, supervisorName] = cells;
     if (!name || !email) continue;
     // Skip an obvious header row.
     if (imported === 0 && /氏名|name/i.test(name) && /メール|email/i.test(email)) {
@@ -45,6 +45,9 @@ export async function importEmployeeDirectoryCsvAction(formData: FormData) {
       employeeNumber: (employeeNumber || "").trim(),
       name: name.trim(),
       email: email.trim(),
+      branchName: (branchName || "").trim(),
+      branchCode: (branchCode || "").trim(),
+      supervisorName: (supervisorName || "").trim(),
     });
     imported++;
   }
@@ -58,12 +61,15 @@ export async function addEmployeeDirectoryRowAction(formData: FormData) {
   const employeeNumber = str(formData, "employeeNumber").trim();
   const name = str(formData, "name").trim();
   const email = str(formData, "email").trim();
+  const branchName = str(formData, "branchName").trim();
+  const branchCode = str(formData, "branchCode").trim();
+  const supervisorName = str(formData, "supervisorName").trim();
 
   if (!name || !email) {
     throw new Error("氏名・メールアドレスを入力してください");
   }
 
-  upsertEmployeeDirectoryRow({ employeeNumber, name, email });
+  upsertEmployeeDirectoryRow({ employeeNumber, name, email, branchName, branchCode, supervisorName });
   revalidatePath("/employees");
 }
 

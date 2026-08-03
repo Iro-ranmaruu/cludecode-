@@ -60,11 +60,20 @@ db.exec(`
     employee_number TEXT,
     name TEXT NOT NULL,
     email TEXT NOT NULL,
+    branch_name TEXT,
+    branch_code TEXT,
+    supervisor_name TEXT,
     updated_at TEXT NOT NULL
   );
 
   CREATE INDEX IF NOT EXISTS idx_employee_directory_employee_number ON employee_directory(employee_number);
   CREATE INDEX IF NOT EXISTS idx_employee_directory_name ON employee_directory(name);
+
+  CREATE TABLE IF NOT EXISTS customer_master (
+    customer_code TEXT PRIMARY KEY,
+    customer_name TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+  );
 
   CREATE TABLE IF NOT EXISTS requests (
     id TEXT PRIMARY KEY,
@@ -214,6 +223,24 @@ function migrateUsersEmailColumn() {
 
 migrateUsersEmailColumn();
 
+function migrateEmployeeDirectoryColumns() {
+  const columns = db.prepare(`PRAGMA table_info(employee_directory)`).all() as {
+    name: string;
+  }[];
+  const names = columns.map((c) => c.name);
+  if (!names.includes("branch_name")) {
+    db.exec(`ALTER TABLE employee_directory ADD COLUMN branch_name TEXT`);
+  }
+  if (!names.includes("branch_code")) {
+    db.exec(`ALTER TABLE employee_directory ADD COLUMN branch_code TEXT`);
+  }
+  if (!names.includes("supervisor_name")) {
+    db.exec(`ALTER TABLE employee_directory ADD COLUMN supervisor_name TEXT`);
+  }
+}
+
+migrateEmployeeDirectoryColumns();
+
 function seedProductMasterIfEmpty() {
   const row = db.prepare(`SELECT COUNT(*) AS cnt FROM product_master`).get() as {
     cnt: number;
@@ -292,11 +319,14 @@ function seedEmployeeDirectoryIfEmpty() {
   const iNumber = col("employee_number");
   const iName = col("name");
   const iEmail = col("email");
+  const iBranchName = col("branch_name");
+  const iBranchCode = col("branch_code");
+  const iSupervisorName = col("supervisor_name");
   if (iName < 0 || iEmail < 0) return;
 
   const insert = db.prepare(`
-    INSERT INTO employee_directory (id, employee_number, name, email, updated_at)
-    VALUES (@id, @employee_number, @name, @email, @updated_at)
+    INSERT INTO employee_directory (id, employee_number, name, email, branch_name, branch_code, supervisor_name, updated_at)
+    VALUES (@id, @employee_number, @name, @email, @branch_name, @branch_code, @supervisor_name, @updated_at)
   `);
 
   const now = new Date().toISOString();
@@ -310,6 +340,9 @@ function seedEmployeeDirectoryIfEmpty() {
         employee_number: iNumber >= 0 ? row[iNumber] || null : null,
         name,
         email,
+        branch_name: iBranchName >= 0 ? row[iBranchName] || null : null,
+        branch_code: iBranchCode >= 0 ? row[iBranchCode] || null : null,
+        supervisor_name: iSupervisorName >= 0 ? row[iSupervisorName] || null : null,
         updated_at: now,
       });
     }
@@ -318,5 +351,44 @@ function seedEmployeeDirectoryIfEmpty() {
 }
 
 seedEmployeeDirectoryIfEmpty();
+
+function seedCustomerMasterIfEmpty() {
+  const row = db.prepare(`SELECT COUNT(*) AS cnt FROM customer_master`).get() as {
+    cnt: number;
+  };
+  if (row.cnt > 0) return;
+
+  const seedPath = path.join(process.cwd(), "data-seed", "customer-master.csv");
+  if (!fs.existsSync(seedPath)) return;
+
+  const text = fs.readFileSync(seedPath, "utf-8");
+  const lines = parseCsvText(text);
+  if (lines.length === 0) return;
+
+  const [header, ...dataRows] = lines;
+  const col = (name: string) => header.indexOf(name);
+  const iCode = col("customer_code");
+  const iName = col("customer_name");
+  if (iCode < 0 || iName < 0) return;
+
+  const insert = db.prepare(`
+    INSERT INTO customer_master (customer_code, customer_name, updated_at)
+    VALUES (@customer_code, @customer_name, @updated_at)
+    ON CONFLICT(customer_code) DO NOTHING
+  `);
+
+  const now = new Date().toISOString();
+  const tx = db.transaction(() => {
+    for (const row of dataRows) {
+      const code = row[iCode];
+      const name = row[iName];
+      if (!code || !name) continue;
+      insert.run({ customer_code: code, customer_name: name, updated_at: now });
+    }
+  });
+  tx();
+}
+
+seedCustomerMasterIfEmpty();
 
 export default db;

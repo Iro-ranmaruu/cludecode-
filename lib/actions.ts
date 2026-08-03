@@ -32,6 +32,7 @@ export async function submitRequestAction(formData: FormData) {
       "productCode",
       "deliveryPrice",
       "standardWholesalePrice",
+      "guidelinePrice",
       "desiredWholesalePrice",
       "monthlyAvgSales",
       "productAbbreviation",
@@ -92,8 +93,8 @@ export async function submitRequestAction(formData: FormData) {
     items,
   };
 
-  if (!input.branchName || !input.staffName || items.length === 0) {
-    throw new Error("店所名・担当者名・商品明細を1件以上入力してください");
+  if (!input.applicationDate || !input.employeeNumber || items.length === 0) {
+    throw new Error("申請日・社員番号・商品明細を1件以上入力してください");
   }
 
   const id = createRequest(input);

@@ -52,23 +52,55 @@ export function useRequiredProgress(formRef: RefObject<HTMLFormElement | null>) 
   return progress;
 }
 
+function ProgressCheckIcon() {
+  return (
+    <svg
+      viewBox="0 0 20 20"
+      fill="none"
+      className="h-4 w-4 shrink-0"
+      stroke="currentColor"
+      strokeWidth={2.5}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M4 10.5 8 14.5 16 5.5" />
+    </svg>
+  );
+}
+
 export function RequiredProgressBar({ filled, total }: { filled: number; total: number }) {
   const pct = total === 0 ? 0 : Math.round((filled / total) * 100);
   const complete = total > 0 && filled === total;
+  const barGradient = complete
+    ? "linear-gradient(90deg, #059669, #34d399)"
+    : "linear-gradient(90deg, #f59e0b, #6366f1, #0ea5e9)";
   return (
-    <div className="rounded-lg border border-slate-200 bg-white px-4 py-3 shadow-sm">
-      <div className="mb-1.5 flex items-center justify-between text-xs font-medium text-slate-600">
-        <span>入力進捗（必須項目）</span>
-        <span className={complete ? "font-semibold text-emerald-600" : ""}>
-          {filled} / {total} 項目（{pct}%）
+    <div
+      className={`overflow-hidden rounded-xl border p-4 shadow-sm transition-colors duration-300 ${
+        complete ? "border-emerald-200 bg-emerald-50/60" : "border-slate-200 bg-white"
+      }`}
+    >
+      <div className="flex items-center justify-between gap-3">
+        <span
+          className={`flex items-center gap-1.5 text-sm font-semibold ${
+            complete ? "text-emerald-700" : "text-slate-700"
+          }`}
+        >
+          {complete && <ProgressCheckIcon />}
+          {complete ? "入力完了！" : "入力進捗（必須項目）"}
         </span>
-      </div>
-      <div className="h-2 w-full overflow-hidden rounded-full bg-slate-200">
-        <div
-          className={`h-full rounded-full transition-all duration-200 ${
+        <span
+          className={`rounded-full px-2.5 py-0.5 text-xs font-bold tabular-nums text-white transition-colors duration-300 ${
             complete ? "bg-emerald-500" : "bg-slate-900"
           }`}
-          style={{ width: `${pct}%` }}
+        >
+          {filled} / {total}（{pct}%）
+        </span>
+      </div>
+      <div className="mt-2.5 h-3 w-full overflow-hidden rounded-full bg-slate-200/80">
+        <div
+          className="h-full rounded-full transition-[width] duration-300 ease-out"
+          style={{ width: `${pct}%`, backgroundImage: barGradient }}
         />
       </div>
     </div>

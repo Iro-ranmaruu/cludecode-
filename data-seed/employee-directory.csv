@@ -1,3 +1,4 @@
-employee_number,name,email
-,飯田彩葉,iroha_iida@ni.wism-mutoh.co.jp
-,武藤花子,hanako_mutoh@ni.wism-mutoh.co.jp
+employee_number,name,email,branch_name,branch_code,supervisor_name
+,飯田彩葉,iroha_iida@ni.wism-mutoh.co.jp,,,
+,武藤花子,hanako_mutoh@ni.wism-mutoh.co.jp,,,
+4908,イイダ,iroha_iida@ni.wism-mutoh.co.jp,WiSM製品企画販売部,TL,M下

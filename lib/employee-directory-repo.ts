@@ -6,6 +6,9 @@ export interface EmployeeDirectoryRecord {
   employeeNumber: string | null;
   name: string;
   email: string;
+  branchName: string | null;
+  branchCode: string | null;
+  supervisorName: string | null;
   updatedAt: string;
 }
 
@@ -16,6 +19,9 @@ function rowToRecord(row: any): EmployeeDirectoryRecord {
     employeeNumber: row.employee_number,
     name: row.name,
     email: row.email,
+    branchName: row.branch_name,
+    branchCode: row.branch_code,
+    supervisorName: row.supervisor_name,
     updatedAt: row.updated_at,
   };
 }
@@ -47,10 +53,21 @@ export function findEmployeeEmail(params: {
   return null;
 }
 
+export function findEmployeeByNumber(employeeNumber: string): EmployeeDirectoryRecord | null {
+  const row = db
+    .prepare(`SELECT * FROM employee_directory WHERE employee_number = ?`)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    .get(employeeNumber) as any;
+  return row ? rowToRecord(row) : null;
+}
+
 export function upsertEmployeeDirectoryRow(input: {
   employeeNumber: string;
   name: string;
   email: string;
+  branchName?: string;
+  branchCode?: string;
+  supervisorName?: string;
 }): void {
   const now = new Date().toISOString();
   const existing = input.employeeNumber
@@ -65,12 +82,30 @@ export function upsertEmployeeDirectoryRow(input: {
 
   if (existing) {
     db.prepare(
-      `UPDATE employee_directory SET employee_number = ?, name = ?, email = ?, updated_at = ? WHERE id = ?`
-    ).run(input.employeeNumber || null, input.name, input.email, now, existing.id);
+      `UPDATE employee_directory SET employee_number = ?, name = ?, email = ?, branch_name = ?, branch_code = ?, supervisor_name = ?, updated_at = ? WHERE id = ?`
+    ).run(
+      input.employeeNumber || null,
+      input.name,
+      input.email,
+      input.branchName || null,
+      input.branchCode || null,
+      input.supervisorName || null,
+      now,
+      existing.id
+    );
   } else {
     db.prepare(
-      `INSERT INTO employee_directory (id, employee_number, name, email, updated_at) VALUES (?, ?, ?, ?, ?)`
-    ).run(randomUUID(), input.employeeNumber || null, input.name, input.email, now);
+      `INSERT INTO employee_directory (id, employee_number, name, email, branch_name, branch_code, supervisor_name, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
+    ).run(
+      randomUUID(),
+      input.employeeNumber || null,
+      input.name,
+      input.email,
+      input.branchName || null,
+      input.branchCode || null,
+      input.supervisorName || null,
+      now
+    );
   }
 }
 

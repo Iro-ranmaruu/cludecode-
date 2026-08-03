@@ -3,6 +3,8 @@
 import { useId, useRef, useState } from "react";
 import { submitRequestAction } from "@/lib/actions";
 import { fetchProductInfo } from "@/lib/product-lookup-client";
+import { fetchEmployeeInfo } from "@/lib/employee-lookup-client";
+import { fetchCustomerInfo } from "@/lib/customer-lookup-client";
 import {
   RequiredProgressBar,
   ValidationErrorBanner,
@@ -12,6 +14,8 @@ import {
 
 const inputCls =
   "w-full rounded-md border border-slate-300 px-3 py-1.5 text-sm shadow-sm focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500";
+const autoFilledCls =
+  "w-full rounded-md border border-slate-300 bg-slate-100 px-3 py-1.5 text-sm text-slate-500 shadow-sm cursor-not-allowed";
 const labelCls = "block text-xs font-medium text-slate-600 mb-1";
 
 function Field({
@@ -78,6 +82,33 @@ export default function RequestForm({ currentUser }: RequestFormProps) {
     if (!ok) e.preventDefault();
   }
 
+  async function handleEmployeeLookupBlur(e: React.FocusEvent<HTMLInputElement>) {
+    const form = e.currentTarget.form;
+    if (!form) return;
+    const staffNameInput = form.querySelector<HTMLInputElement>('[name="staffName"]');
+    const branchNameInput = form.querySelector<HTMLInputElement>('[name="branchName"]');
+    const branchCodeInput = form.querySelector<HTMLInputElement>('[name="branchCode"]');
+    const supervisorInput = form.querySelector<HTMLInputElement>('[name="supervisorName"]');
+
+    const result = await fetchEmployeeInfo(e.currentTarget.value);
+    if (!result) return;
+    if (staffNameInput) staffNameInput.value = result.name;
+    if (branchNameInput) branchNameInput.value = result.branchName;
+    if (branchCodeInput) branchCodeInput.value = result.branchCode;
+    if (supervisorInput) supervisorInput.value = result.supervisorName;
+  }
+
+  async function handleCustomerCodeLookupBlur(e: React.FocusEvent<HTMLInputElement>) {
+    const form = e.currentTarget.form;
+    if (!form) return;
+    const facilityNameInput = form.querySelector<HTMLInputElement>(
+      '[name="customerFacilityName"]'
+    );
+    const result = await fetchCustomerInfo(e.currentTarget.value);
+    if (!result || !facilityNameInput) return;
+    facilityNameInput.value = result.customerName;
+  }
+
   async function handleProductLookupBlur(e: React.FocusEvent<HTMLInputElement>) {
     const row = e.currentTarget.closest("[data-item-row]");
     if (!row) return;
@@ -91,7 +122,6 @@ export default function RequestForm({ currentUser }: RequestFormProps) {
     const guidelinePriceInput = row.querySelector<HTMLInputElement>(
       '[data-field="guidelinePrice"]'
     );
-    const guidelineDisplay = row.querySelector<HTMLElement>('[data-guideline-display]');
     if (!makerInput || !productInput || !nameInput) return;
 
     const result = await fetchProductInfo(makerInput.value, productInput.value);
@@ -104,12 +134,6 @@ export default function RequestForm({ currentUser }: RequestFormProps) {
       if (guidelinePriceInput) {
         guidelinePriceInput.value =
           result.guidelinePrice !== null ? String(result.guidelinePrice) : "";
-      }
-      if (guidelineDisplay) {
-        guidelineDisplay.textContent =
-          result.guidelinePrice !== null
-            ? `特価目安: ¥${result.guidelinePrice.toLocaleString("ja-JP")}`
-            : "特価目安: -";
       }
     }
   }
@@ -138,42 +162,51 @@ export default function RequestForm({ currentUser }: RequestFormProps) {
               defaultValue={new Date().toISOString().slice(0, 10)}
             />
           </Field>
-          <Field label="店所名" required>
+          <Field label="社員番号" required>
+            <input
+              name="employeeNumber"
+              required
+              defaultValue={currentUser?.employeeNumber || ""}
+              onBlur={handleEmployeeLookupBlur}
+              className={inputCls}
+            />
+          </Field>
+          <Field label="担当者名">
+            <input
+              name="staffName"
+              readOnly
+              placeholder="自動入力"
+              defaultValue={currentUser?.name || ""}
+              className={autoFilledCls}
+            />
+          </Field>
+          <Field label="店所名">
             <input
               name="branchName"
-              required
+              readOnly
+              placeholder="自動入力"
               defaultValue={currentUser?.branchName || ""}
-              className={inputCls}
+              className={autoFilledCls}
             />
           </Field>
           <Field label="店所コード">
-            <input name="branchCode" className={inputCls} />
+            <input name="branchCode" readOnly placeholder="自動入力" className={autoFilledCls} />
           </Field>
           <Field label="所属長名">
-            <input name="supervisorName" className={inputCls} />
-          </Field>
-          <Field label="担当者名" required>
-            <input
-              name="staffName"
-              required
-              defaultValue={currentUser?.name || ""}
-              className={inputCls}
-            />
-          </Field>
-          <Field label="社員番号">
-            <input
-              name="employeeNumber"
-              defaultValue={currentUser?.employeeNumber || ""}
-              className={inputCls}
-            />
+            <input name="supervisorName" readOnly placeholder="自動入力" className={autoFilledCls} />
           </Field>
         </div>
       </Section>
 
       <Section title="得意先情報">
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <Field label="得意先施設名" required>
-            <input name="customerFacilityName" required className={inputCls} />
+          <Field label="得意先施設名">
+            <input
+              name="customerFacilityName"
+              readOnly
+              placeholder="自動入力"
+              className={autoFilledCls}
+            />
           </Field>
           <Field label="施設内の納入部所">
             <input name="deliveryDepartment" className={inputCls} />
@@ -181,7 +214,10 @@ export default function RequestForm({ currentUser }: RequestFormProps) {
         </div>
 
         <div className="mt-4">
-          <label className={labelCls}>得意先コード（先頭6桁）</label>
+          <label className={labelCls}>
+            得意先コード（先頭6桁）
+            <span className="ml-1 text-rose-600">*</span>
+          </label>
           <p className="mb-2 text-xs text-slate-500">
             半角英数字6桁で入力してください。末尾2桁には自動で「00」が付きます。
           </p>
@@ -190,11 +226,13 @@ export default function RequestForm({ currentUser }: RequestFormProps) {
               <div key={id} className="flex items-center gap-2">
                 <input
                   name="customerCodes[]"
+                  required={i === 0}
                   maxLength={6}
                   pattern="[0-9A-Za-z]{6}"
                   title="半角英数字6桁で入力してください"
                   placeholder="例: JI7000"
                   style={{ textTransform: "uppercase" }}
+                  onBlur={handleCustomerCodeLookupBlur}
                   className={`${inputCls} max-w-[140px]`}
                 />
                 <span className="text-sm text-slate-400">+ 00</span>
@@ -255,27 +293,28 @@ export default function RequestForm({ currentUser }: RequestFormProps) {
               </div>
 
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-                <Field label="メーカーコード">
+                <Field label="メーカーコード" required>
                   <input
                     name={`items[${i}][makerCode]`}
                     data-field="makerCode"
+                    required
                     onBlur={handleProductLookupBlur}
                     className={inputCls}
                   />
                 </Field>
-                <Field label="商品コード">
+                <Field label="商品コード" required>
                   <input
                     name={`items[${i}][productCode]`}
                     data-field="productCode"
+                    required
                     onBlur={handleProductLookupBlur}
                     className={inputCls}
                   />
                 </Field>
-                <Field label="商品名" required>
+                <Field label="商品名">
                   <input
                     name={`items[${i}][productName]`}
                     data-field="productName"
-                    required
                     className={inputCls}
                   />
                 </Field>
@@ -292,42 +331,43 @@ export default function RequestForm({ currentUser }: RequestFormProps) {
                     className={inputCls}
                   />
                 </Field>
-                <Field label="納入価">
+                <Field label="納入価" required>
                   <input
                     type="number"
                     step="any"
                     name={`items[${i}][deliveryPrice]`}
+                    required
                     className={inputCls}
                   />
                 </Field>
-                <Field label="通常仕切（営業仕切）" required>
+                <Field label="通常仕切（営業仕切）">
                   <input
                     type="number"
                     step="any"
                     name={`items[${i}][standardWholesalePrice]`}
                     data-field="standardWholesalePrice"
-                    required
                     className={inputCls}
                   />
                   <p className="mt-1 text-xs text-slate-400">
                     メーカーコード・商品コードから商品マスタを参照して自動入力されます（手動で修正可）
                   </p>
                 </Field>
-                <Field label="希望仕切額" required>
+                <Field label="特価目安" required>
+                  <input
+                    type="number"
+                    step="any"
+                    name={`items[${i}][guidelinePrice]`}
+                    data-field="guidelinePrice"
+                    required
+                    className={inputCls}
+                  />
+                </Field>
+                <Field label="希望仕切額">
                   <input
                     type="number"
                     step="any"
                     name={`items[${i}][desiredWholesalePrice]`}
-                    required
                     className={inputCls}
-                  />
-                  <p data-guideline-display className="mt-1 text-xs text-sky-600">
-                    特価目安: -
-                  </p>
-                  <input
-                    type="hidden"
-                    name={`items[${i}][guidelinePrice]`}
-                    data-field="guidelinePrice"
                   />
                 </Field>
                 <Field label="月平均販売量">

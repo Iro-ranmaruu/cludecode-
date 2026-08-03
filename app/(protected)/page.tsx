@@ -98,6 +98,23 @@ export default async function MainMenuPage() {
 
         {user?.role === "企画" && (
           <div className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+            <h2 className="text-lg font-semibold text-slate-900">得意先マスタ</h2>
+            <p className="mt-2 text-sm text-slate-600">
+              得意先コードと得意先施設名を管理します。特価申請フォームで自動反映されます。
+            </p>
+            <div className="mt-4 flex gap-3 text-sm font-medium">
+              <Link
+                href="/customers"
+                className="rounded-md bg-slate-900 px-3 py-1.5 text-white hover:bg-slate-700"
+              >
+                得意先マスタを開く
+              </Link>
+            </div>
+          </div>
+        )}
+
+        {user?.role === "企画" && (
+          <div className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
             <h2 className="text-lg font-semibold text-slate-900">データエクスポート</h2>
             <p className="mt-2 text-sm text-slate-600">
               各モジュールの申請データをCSVで一括ダウンロードします（企画権限のみ）。
