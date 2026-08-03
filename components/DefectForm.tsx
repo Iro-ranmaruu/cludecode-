@@ -1,9 +1,15 @@
 "use client";
 
-import { useId, useState } from "react";
+import { useId, useRef, useState } from "react";
 import { submitDefectRequestAction } from "@/lib/defect-actions";
 import { fetchProductInfo } from "@/lib/product-lookup-client";
 import { DEFECT_CATEGORY_OPTIONS, SEND_DESTINATION_OPTIONS } from "@/lib/defect-types";
+import {
+  RequiredProgressBar,
+  ValidationErrorBanner,
+  useRequiredProgress,
+  validateAndHighlight,
+} from "@/components/FormProgress";
 
 const inputCls =
   "w-full rounded-md border border-slate-300 px-3 py-1.5 text-sm shadow-sm focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500";
@@ -60,6 +66,15 @@ export default function DefectForm({ currentUser }: DefectFormProps) {
   const uid = useId();
   const [itemIds, setItemIds] = useState<string[]>([`${uid}-0`]);
   const [needsReplacement, setNeedsReplacement] = useState(false);
+  const formRef = useRef<HTMLFormElement>(null);
+  const progress = useRequiredProgress(formRef);
+  const [showValidationBanner, setShowValidationBanner] = useState(false);
+
+  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    const ok = validateAndHighlight(e.currentTarget);
+    setShowValidationBanner(!ok);
+    if (!ok) e.preventDefault();
+  }
 
   async function handleProductLookupBlur(e: React.FocusEvent<HTMLInputElement>) {
     const row = e.currentTarget.closest("[data-item-row]");
@@ -78,8 +93,17 @@ export default function DefectForm({ currentUser }: DefectFormProps) {
   }
 
   return (
-    <form action={submitDefectRequestAction} className="space-y-6">
+    <form
+      ref={formRef}
+      action={submitDefectRequestAction}
+      onSubmit={handleSubmit}
+      noValidate
+      className="space-y-6"
+    >
       <input type="hidden" name="itemCount" value={itemIds.length} />
+
+      <RequiredProgressBar filled={progress.filled} total={progress.total} />
+      <ValidationErrorBanner show={showValidationBanner} />
 
       <Section title="依頼者情報">
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">

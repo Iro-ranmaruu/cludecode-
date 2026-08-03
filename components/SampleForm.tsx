@@ -1,9 +1,15 @@
 "use client";
 
-import { useId, useState } from "react";
+import { useId, useRef, useState } from "react";
 import { submitSampleRequestAction } from "@/lib/sample-actions";
 import { fetchProductInfo } from "@/lib/product-lookup-client";
 import { DESTINATION_OPTIONS, PURPOSE_OPTIONS } from "@/lib/sample-types";
+import {
+  RequiredProgressBar,
+  ValidationErrorBanner,
+  useRequiredProgress,
+  validateAndHighlight,
+} from "@/components/FormProgress";
 
 const inputCls =
   "w-full rounded-md border border-slate-300 px-3 py-1.5 text-sm shadow-sm focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500";
@@ -59,6 +65,15 @@ export default function SampleForm({ currentUser }: SampleFormProps) {
   const uid = useId();
   const [itemIds, setItemIds] = useState<string[]>([`${uid}-0`]);
   const [purpose, setPurpose] = useState("切替提案");
+  const formRef = useRef<HTMLFormElement>(null);
+  const progress = useRequiredProgress(formRef);
+  const [showValidationBanner, setShowValidationBanner] = useState(false);
+
+  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    const ok = validateAndHighlight(e.currentTarget);
+    setShowValidationBanner(!ok);
+    if (!ok) e.preventDefault();
+  }
 
   async function handleProductLookupBlur(e: React.FocusEvent<HTMLInputElement>) {
     const row = e.currentTarget.closest("[data-item-row]");
@@ -77,8 +92,17 @@ export default function SampleForm({ currentUser }: SampleFormProps) {
   }
 
   return (
-    <form action={submitSampleRequestAction} className="space-y-6">
+    <form
+      ref={formRef}
+      action={submitSampleRequestAction}
+      onSubmit={handleSubmit}
+      noValidate
+      className="space-y-6"
+    >
       <input type="hidden" name="itemCount" value={itemIds.length} />
+
+      <RequiredProgressBar filled={progress.filled} total={progress.total} />
+      <ValidationErrorBanner show={showValidationBanner} />
 
       <Section title="申請情報">
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
