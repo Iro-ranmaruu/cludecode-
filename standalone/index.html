@@ -209,6 +209,16 @@
   .csv-filter-bar .dest-checks { display: flex; flex-wrap: wrap; gap: 4px 14px; padding-top: 2px; }
   .csv-filter-bar .dest-checks label { display: flex; align-items: center; gap: 5px; font-size: 12.5px; color: var(--ink); cursor: pointer; }
   .csv-filter-bar .csv-filter-note { basis: 100%; width: 100%; font-size: 11.5px; color: var(--ink-soft); margin-top: 2px; }
+
+  .form-progress { border: 1px solid var(--line); background: var(--surface); border-radius: var(--radius); padding: 12px 14px; margin-bottom: 20px; box-shadow: var(--shadow-sm); }
+  .form-progress-row { display: flex; align-items: center; justify-content: space-between; font-size: 12px; font-weight: 600; color: var(--ink-soft); margin-bottom: 6px; }
+  .form-progress-row .complete { color: var(--good); font-weight: 700; }
+  .form-progress-track { height: 8px; width: 100%; border-radius: 999px; background: var(--line-soft); overflow: hidden; }
+  .form-progress-fill { height: 100%; border-radius: 999px; background: var(--accent); transition: width .2s ease; }
+  .form-progress-fill.complete { background: var(--good); }
+
+  .field-error-msg { margin-top: 4px; font-size: 11.5px; font-weight: 600; color: var(--bad); }
+  input.field-invalid, select.field-invalid, textarea.field-invalid { border-color: var(--bad) !important; box-shadow: 0 0 0 3px var(--bad-soft) !important; }
 </style>
 </head>
 <body>
@@ -266,6 +276,104 @@
     if (from && dateStr < from) return false;
     if (to && dateStr > to) return false;
     return true;
+  }
+
+  // ================= Form progress + required-field validation =================
+
+  function computeRequiredProgress(form) {
+    var els = Array.prototype.slice.call(form.querySelectorAll("[required]"));
+    var seenRadio = {};
+    var total = 0, filled = 0;
+    els.forEach(function (el) {
+      if (el.type === "radio") {
+        if (seenRadio[el.name]) return;
+        seenRadio[el.name] = true;
+        total++;
+        if (form.querySelector('input[name="' + el.name + '"]:checked')) filled++;
+        return;
+      }
+      total++;
+      if (el.type === "checkbox") {
+        if (el.checked) filled++;
+      } else if (el.value && el.value.trim() !== "") {
+        filled++;
+      }
+    });
+    return { filled: filled, total: total };
+  }
+
+  function formProgressBarHtml() {
+    return (
+      '<div class="form-progress">' +
+        '<div class="form-progress-row"><span>入力進捗（必須項目）</span><span id="form-progress-text">0 / 0 項目（0%）</span></div>' +
+        '<div class="form-progress-track"><div class="form-progress-fill" id="form-progress-fill" style="width:0%;"></div></div>' +
+      '</div>'
+    );
+  }
+
+  function validationBannerHtml() {
+    return '<div class="banner-error" id="validation-banner" style="display:none;">未入力の必須項目があります。赤枠で示した項目をご確認のうえ入力してください。</div>';
+  }
+
+  function wireFormProgress(form) {
+    var textEl = document.getElementById("form-progress-text");
+    var fillEl = document.getElementById("form-progress-fill");
+    function update() {
+      var p = computeRequiredProgress(form);
+      var pct = p.total === 0 ? 0 : Math.round((p.filled / p.total) * 100);
+      var complete = p.total > 0 && p.filled === p.total;
+      if (textEl) {
+        textEl.textContent = p.filled + " / " + p.total + " 項目（" + pct + "%）";
+        textEl.classList.toggle("complete", complete);
+      }
+      if (fillEl) {
+        fillEl.style.width = pct + "%";
+        fillEl.classList.toggle("complete", complete);
+      }
+    }
+    update();
+    form.addEventListener("input", update);
+    form.addEventListener("change", update);
+    var observer = new MutationObserver(update);
+    observer.observe(form, { childList: true, subtree: true });
+  }
+
+  function showValidationBanner(show) {
+    var el = document.getElementById("validation-banner");
+    if (el) el.style.display = show ? "" : "none";
+  }
+
+  function validateAndHighlightForm(form) {
+    if (form.checkValidity()) return true;
+    var invalids = Array.prototype.slice.call(form.querySelectorAll(":invalid"));
+    invalids.forEach(function (el) {
+      el.classList.add("field-invalid");
+      var parent = el.parentElement;
+      if (parent && !parent.querySelector("[data-field-error]")) {
+        var msg = document.createElement("p");
+        msg.setAttribute("data-field-error", "");
+        msg.className = "field-error-msg";
+        msg.textContent = "この項目は必須です";
+        parent.appendChild(msg);
+      }
+      var clear = function () {
+        if (!el.checkValidity()) return;
+        el.classList.remove("field-invalid");
+        if (parent) {
+          var m = parent.querySelector("[data-field-error]");
+          if (m) m.remove();
+        }
+        el.removeEventListener("input", clear);
+        el.removeEventListener("change", clear);
+      };
+      el.addEventListener("input", clear);
+      el.addEventListener("change", clear);
+    });
+    if (invalids[0]) {
+      invalids[0].scrollIntoView({ behavior: "smooth", block: "center" });
+      invalids[0].focus();
+    }
+    return false;
   }
 
   function downloadCsv(filename, csvText) {
@@ -642,7 +750,9 @@
     var appEl = mount(
       '<h1>WiSM商品 特別価格申請</h1>' +
       '<p class="muted" style="margin-bottom:24px;">入力して送信すると、企画側の一覧に申請が追加されます。</p>' +
-      '<form id="tokka-form">' +
+      formProgressBarHtml() +
+      validationBannerHtml() +
+      '<form id="tokka-form" novalidate>' +
       '<section class="panel"><h2>申請者情報</h2>' +
         '<div class="grid cols-3" style="margin-top:16px;">' +
           '<div>' + fieldLabel("申請日", true) + '<input type="date" name="applicationDate" required value="' + todayStr() + '" /></div>' +
@@ -691,6 +801,7 @@
     var itemList = document.getElementById("item-list");
     var ccList = document.getElementById("cc-list");
 
+    wireFormProgress(document.getElementById("tokka-form"));
     setupRepeatableList(itemList, document.getElementById("add-item"), tokkaItemRowTemplate, "商品");
 
     document.getElementById("add-cc").addEventListener("click", function () {
@@ -726,7 +837,9 @@
           decision: "未決定", decidedWholesalePrice: null
         });
       });
-      if (!form.reportValidity()) return;
+      var isValid = validateAndHighlightForm(form);
+      showValidationBanner(!isValid);
+      if (!isValid) return;
       if (hasError || items.length === 0) { alert("商品明細を1件以上、商品名・通常仕切・希望仕切額を入力してください。"); return; }
 
       var ccInputs = Array.prototype.filter.call(ccList.querySelectorAll("[data-cc-input]"), function (el) { return el.value.trim() !== ""; });
@@ -972,7 +1085,9 @@
     mount(
       '<h1>WiSM製品 不具合品 処理依頼</h1>' +
       '<p class="muted" style="margin-bottom:24px;">入力して送信すると、企画側の一覧に依頼が追加されます。</p>' +
-      '<form id="fuguai-form">' +
+      formProgressBarHtml() +
+      validationBannerHtml() +
+      '<form id="fuguai-form" novalidate>' +
       '<section class="panel"><h2>依頼者情報</h2>' +
         '<div class="grid cols-3" style="margin-top:16px;">' +
           '<div>' + fieldLabel("依頼日", true) + '<input type="date" name="requestDate" required value="' + todayStr() + '" /></div>' +
@@ -1014,6 +1129,7 @@
     );
 
     var itemList = document.getElementById("item-list");
+    wireFormProgress(document.getElementById("fuguai-form"));
     setupRepeatableList(itemList, document.getElementById("add-item"), fuguaiItemRowTemplate, "商品");
 
     var needsReplacement = document.getElementById("needs-replacement");
@@ -1042,7 +1158,9 @@
           defectCategory: get("defectCategory").value, defectDetail: get("defectDetail").value.trim()
         });
       });
-      if (!form.reportValidity()) return;
+      var isValid = validateAndHighlightForm(form);
+      showValidationBanner(!isValid);
+      if (!isValid) return;
       if (hasError || items.length === 0) { alert("商品明細を1件以上、メーカーコード・商品コードを入力してください（商品名は自動入力されます）。"); return; }
 
       var fd = new FormData(form);
@@ -1255,7 +1373,9 @@
     mount(
       '<h1>WiSM製品 サンプル申請</h1>' +
       '<p class="muted" style="margin-bottom:24px;">入力して送信すると、企画側の一覧に申請が追加されます。</p>' +
-      '<form id="sample-form">' +
+      formProgressBarHtml() +
+      validationBannerHtml() +
+      '<form id="sample-form" novalidate>' +
       '<section class="panel"><h2>申請情報</h2>' +
         '<div class="grid cols-3" style="margin-top:16px;">' +
           '<div>' + fieldLabel("申請日", true) + '<input type="date" name="requestDate" required value="' + todayStr() + '" /></div>' +
@@ -1292,6 +1412,7 @@
     );
 
     var itemList = document.getElementById("item-list");
+    wireFormProgress(document.getElementById("sample-form"));
     setupRepeatableList(itemList, document.getElementById("add-item"), sampleItemRowTemplate, "明細");
 
     var purposeOtherWrap = document.getElementById("purpose-other-wrap");
@@ -1323,7 +1444,9 @@
           plannedPrice: numOrNull(get("plannedPrice").value), plannedQuantity: get("plannedQuantity").value.trim(), plannedDate: get("plannedDate").value
         });
       });
-      if (!form.reportValidity()) return;
+      var isValid = validateAndHighlightForm(form);
+      showValidationBanner(!isValid);
+      if (!isValid) return;
       if (hasError || items.length === 0) { alert("サンプル明細を1件以上、メーカーコード・商品コードを入力してください（商品名は自動入力されます）。"); return; }
 
       var fd = new FormData(form);
