@@ -71,37 +71,51 @@ function ProgressCheckIcon() {
 export function RequiredProgressBar({ filled, total }: { filled: number; total: number }) {
   const pct = total === 0 ? 0 : Math.round((filled / total) * 100);
   const complete = total > 0 && filled === total;
+  const ringGradient = complete
+    ? "linear-gradient(135deg, #34d399, #2dd4bf, #22d3ee)"
+    : "linear-gradient(135deg, #f472b6, #a78bfa, #38bdf8)";
   const barGradient = complete
-    ? "linear-gradient(90deg, #059669, #34d399)"
-    : "linear-gradient(90deg, #f59e0b, #6366f1, #0ea5e9)";
+    ? "linear-gradient(90deg, #10b981, #14b8a6, #06b6d4)"
+    : "linear-gradient(90deg, #ec4899, #8b5cf6, #38bdf8)";
+
   return (
-    <div
-      className={`overflow-hidden rounded-xl border p-4 shadow-sm transition-colors duration-300 ${
-        complete ? "border-emerald-200 bg-emerald-50/60" : "border-slate-200 bg-white"
-      }`}
-    >
-      <div className="flex items-center justify-between gap-3">
-        <span
-          className={`flex items-center gap-1.5 text-sm font-semibold ${
-            complete ? "text-emerald-700" : "text-slate-700"
-          }`}
-        >
-          {complete && <ProgressCheckIcon />}
-          {complete ? "入力完了！" : "入力進捗（必須項目）"}
-        </span>
-        <span
-          className={`rounded-full px-2.5 py-0.5 text-xs font-bold tabular-nums text-white transition-colors duration-300 ${
-            complete ? "bg-emerald-500" : "bg-slate-900"
-          }`}
-        >
-          {filled} / {total}（{pct}%）
-        </span>
-      </div>
-      <div className="mt-2.5 h-3 w-full overflow-hidden rounded-full bg-slate-200/80">
-        <div
-          className="h-full rounded-full transition-[width] duration-300 ease-out"
-          style={{ width: `${pct}%`, backgroundImage: barGradient }}
-        />
+    <div className="sticky top-0 z-30 -mt-2 pt-2 pb-2">
+      <div
+        className="rounded-2xl p-[1.5px] shadow-lg shadow-indigo-200/50 transition-[background-image] duration-500"
+        style={{ backgroundImage: ringGradient }}
+      >
+        <div className="rounded-[15px] bg-white/90 px-4 py-3 backdrop-blur-xl">
+          <div className="flex items-center justify-between gap-3">
+            <span
+              className={`flex items-center gap-1.5 text-sm font-bold ${
+                complete
+                  ? "text-emerald-600"
+                  : "bg-gradient-to-r from-fuchsia-600 via-violet-600 to-sky-600 bg-clip-text text-transparent"
+              }`}
+            >
+              {complete && (
+                <span className="inline-flex h-4 w-4 animate-[progress-pop_0.4s_ease-out] items-center justify-center text-emerald-500">
+                  <ProgressCheckIcon />
+                </span>
+              )}
+              {complete ? "入力完了！" : "入力進捗"}
+            </span>
+            <span
+              className="rounded-full px-2.5 py-0.5 text-xs font-extrabold tabular-nums text-white shadow-sm transition-[background-image] duration-500"
+              style={{ backgroundImage: barGradient }}
+            >
+              {filled} / {total}（{pct}%）
+            </span>
+          </div>
+          <div className="mt-2 h-2.5 w-full overflow-hidden rounded-full bg-slate-100">
+            <div
+              className="relative h-full overflow-hidden rounded-full transition-[width] duration-500 ease-out"
+              style={{ width: `${pct}%`, backgroundImage: barGradient }}
+            >
+              <div className="absolute inset-0 -translate-x-full animate-[progress-shimmer_1.8s_ease-in-out_infinite] bg-gradient-to-r from-transparent via-white/50 to-transparent" />
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

@@ -30,6 +30,7 @@
     --radius: 12px;
     --autofill-bg: #e7f1f2;
     --autofill-text: #5f7b82;
+    --header-h: 60px;
   }
   :root[data-theme="dark"] {
     --ink: #e6f1f3; --ink-soft: #9db1b8; --paper: #0e1b20; --surface: #15252b;
@@ -210,18 +211,35 @@
   .csv-filter-bar .dest-checks label { display: flex; align-items: center; gap: 5px; font-size: 12.5px; color: var(--ink); cursor: pointer; }
   .csv-filter-bar .csv-filter-note { basis: 100%; width: 100%; font-size: 11.5px; color: var(--ink-soft); margin-top: 2px; }
 
-  .form-progress { border: 1px solid var(--line); background: var(--surface); border-radius: 12px; padding: 14px 16px; margin-bottom: 20px; box-shadow: var(--shadow-sm); transition: background .3s ease, border-color .3s ease; }
-  .form-progress.complete { border-color: var(--good); background: var(--good-soft); }
-  .form-progress-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 8px; }
-  .form-progress-label { display: inline-flex; align-items: center; gap: 6px; font-size: 13.5px; font-weight: 700; color: var(--ink); }
-  .form-progress-label .check-icon { display: none; width: 15px; height: 15px; color: var(--good); }
-  .form-progress.complete .form-progress-label { color: var(--good); }
-  .form-progress.complete .form-progress-label .check-icon { display: inline-block; }
-  .form-progress-text { border-radius: 999px; padding: 3px 11px; font-size: 11.5px; font-weight: 700; color: #fff; background: var(--ink); white-space: nowrap; font-variant-numeric: tabular-nums; transition: background .3s ease; }
-  .form-progress.complete .form-progress-text { background: var(--good); }
+  .form-progress {
+    position: sticky; top: var(--header-h, 60px); z-index: 9;
+    margin: 10px 0 18px; border-radius: 16px; padding: 1.5px;
+    background: linear-gradient(135deg, #f472b6, #a78bfa, #38bdf8);
+    box-shadow: 0 14px 28px -16px rgba(99, 102, 241, .5);
+    transition: background .5s ease, box-shadow .5s ease;
+  }
+  .form-progress.complete { background: linear-gradient(135deg, #34d399, #2dd4bf, #22d3ee); box-shadow: 0 14px 28px -16px rgba(16, 185, 129, .45); }
+  .form-progress-card { border-radius: 14.5px; background: var(--surface); padding: 12px 16px; }
+  .form-progress-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 9px; }
+  .form-progress-label { display: inline-flex; align-items: center; gap: 6px; font-size: 13.5px; font-weight: 800; letter-spacing: .01em; }
+  .form-progress-label-text { background: linear-gradient(90deg, #db2777, #7c3aed, #0284c7); -webkit-background-clip: text; background-clip: text; color: transparent; transition: color .3s ease; }
+  .form-progress.complete .form-progress-label-text { background: none; -webkit-background-clip: unset; background-clip: unset; color: var(--good); }
+  .check-icon-wrap { display: none; width: 16px; height: 16px; align-items: center; justify-content: center; color: var(--good); flex-shrink: 0; }
+  .check-icon-wrap .check-icon { width: 13px; height: 13px; }
+  .form-progress.complete .check-icon-wrap { display: inline-flex; animation: progress-pop .4s ease-out; }
+  .form-progress-text {
+    border-radius: 999px; padding: 4px 12px; font-size: 11.5px; font-weight: 800; color: #fff;
+    background: linear-gradient(90deg, #ec4899, #8b5cf6, #38bdf8); white-space: nowrap;
+    font-variant-numeric: tabular-nums; box-shadow: 0 4px 10px -4px rgba(139, 92, 246, .55);
+    transition: background .5s ease, box-shadow .5s ease;
+  }
+  .form-progress.complete .form-progress-text { background: linear-gradient(90deg, #10b981, #14b8a6, #06b6d4); box-shadow: 0 4px 10px -4px rgba(16, 185, 129, .5); }
   .form-progress-track { height: 10px; width: 100%; border-radius: 999px; background: var(--line-soft); overflow: hidden; }
-  .form-progress-fill { height: 100%; border-radius: 999px; background: linear-gradient(90deg, #f5a524, #6366f1, #0ea5e9); transition: width .3s ease; }
-  .form-progress-fill.complete { background: linear-gradient(90deg, #059669, #34d399); }
+  .form-progress-fill { position: relative; height: 100%; overflow: hidden; border-radius: 999px; background: linear-gradient(90deg, #ec4899, #8b5cf6, #38bdf8); transition: width .5s ease, background .5s ease; }
+  .form-progress-fill.complete { background: linear-gradient(90deg, #10b981, #14b8a6, #06b6d4); }
+  .form-progress-shine { position: absolute; inset: 0; transform: translateX(-100%); background: linear-gradient(90deg, transparent, rgba(255,255,255,.55), transparent); animation: progress-shimmer 1.8s ease-in-out infinite; }
+  @keyframes progress-shimmer { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
+  @keyframes progress-pop { 0% { transform: scale(.5); opacity: 0; } 60% { transform: scale(1.15); opacity: 1; } 100% { transform: scale(1); opacity: 1; } }
 
   .field-error-msg { margin-top: 4px; font-size: 11.5px; font-weight: 600; color: var(--bad); }
   input.field-invalid, select.field-invalid, textarea.field-invalid { border-color: var(--bad) !important; box-shadow: 0 0 0 3px var(--bad-soft) !important; }
@@ -316,14 +334,16 @@
   function formProgressBarHtml() {
     return (
       '<div class="form-progress" id="form-progress-box">' +
-        '<div class="form-progress-row">' +
-          '<span class="form-progress-label" id="form-progress-label">' +
-            '<svg class="check-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10.5 8 14.5 16 5.5"/></svg>' +
-            '<span id="form-progress-label-text">入力進捗（必須項目）</span>' +
-          '</span>' +
-          '<span class="form-progress-text" id="form-progress-text">0 / 0（0%）</span>' +
+        '<div class="form-progress-card">' +
+          '<div class="form-progress-row">' +
+            '<span class="form-progress-label" id="form-progress-label">' +
+              '<span class="check-icon-wrap"><svg class="check-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10.5 8 14.5 16 5.5"/></svg></span>' +
+              '<span class="form-progress-label-text" id="form-progress-label-text">入力進捗</span>' +
+            '</span>' +
+            '<span class="form-progress-text" id="form-progress-text">0 / 0（0%）</span>' +
+          '</div>' +
+          '<div class="form-progress-track"><div class="form-progress-fill" id="form-progress-fill" style="width:0%;"><span class="form-progress-shine"></span></div></div>' +
         '</div>' +
-        '<div class="form-progress-track"><div class="form-progress-fill" id="form-progress-fill" style="width:0%;"></div></div>' +
       '</div>'
     );
   }
@@ -343,7 +363,7 @@
       var complete = p.total > 0 && p.filled === p.total;
       if (boxEl) boxEl.classList.toggle("complete", complete);
       if (textEl) textEl.textContent = p.filled + " / " + p.total + "（" + pct + "%）";
-      if (labelTextEl) labelTextEl.textContent = complete ? "入力完了！" : "入力進捗（必須項目）";
+      if (labelTextEl) labelTextEl.textContent = complete ? "入力完了！" : "入力進捗";
       if (fillEl) {
         fillEl.style.width = pct + "%";
         fillEl.classList.toggle("complete", complete);
@@ -1787,9 +1807,21 @@
     window.scrollTo(0, 0);
   }
 
+  function syncHeaderHeight() {
+    var header = document.querySelector("header");
+    if (!header) return;
+    document.documentElement.style.setProperty("--header-h", header.offsetHeight + "px");
+  }
+
   seedDemoUsersIfMissing();
   window.addEventListener("hashchange", router);
   window.addEventListener("DOMContentLoaded", router);
+  window.addEventListener("resize", syncHeaderHeight);
+  if (window.ResizeObserver) {
+    var headerEl = document.querySelector("header");
+    if (headerEl) new ResizeObserver(syncHeaderHeight).observe(headerEl);
+  }
+  syncHeaderHeight();
   router();
 })();
 </script>
