@@ -1245,7 +1245,16 @@
     );
 
     var itemList = document.getElementById("item-list");
-    wireFormProgress(document.getElementById("fuguai-form"));
+    var fuguaiFormEl = document.getElementById("fuguai-form");
+    wireFormProgress(fuguaiFormEl);
+    wireEmployeeLookup(fuguaiFormEl, {
+      numberField: "employeeNumber", nameField: "staffName",
+      branchNameField: "branchName", branchCodeField: "branchCode", supervisorField: "supervisorName"
+    });
+    wireCustomerLookup(
+      fuguaiFormEl.querySelector('[name="customerCode"]'),
+      fuguaiFormEl.querySelector('[name="customerFacilityName"]')
+    );
     setupRepeatableList(itemList, document.getElementById("add-item"), fuguaiItemRowTemplate, "商品");
 
     var needsReplacement = document.getElementById("needs-replacement");
@@ -1528,7 +1537,11 @@
     );
 
     var itemList = document.getElementById("item-list");
-    wireFormProgress(document.getElementById("sample-form"));
+    var sampleFormEl = document.getElementById("sample-form");
+    wireFormProgress(sampleFormEl);
+    wireEmployeeLookup(sampleFormEl, {
+      numberField: "requesterEmployeeNumber", nameField: "requesterName", branchNameField: "requesterDepartment"
+    });
     setupRepeatableList(itemList, document.getElementById("add-item"), sampleItemRowTemplate, "明細");
 
     var purposeOtherWrap = document.getElementById("purpose-other-wrap");

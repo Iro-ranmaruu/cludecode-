@@ -3,6 +3,7 @@
 import { useId, useRef, useState } from "react";
 import { submitSampleRequestAction } from "@/lib/sample-actions";
 import { fetchProductInfo } from "@/lib/product-lookup-client";
+import { fetchEmployeeInfo } from "@/lib/employee-lookup-client";
 import { DESTINATION_OPTIONS, PURPOSE_OPTIONS } from "@/lib/sample-types";
 import {
   RequiredProgressBar,
@@ -91,6 +92,17 @@ export default function SampleForm({ currentUser }: SampleFormProps) {
     }
   }
 
+  async function handleEmployeeLookupBlur(e: React.FocusEvent<HTMLInputElement>) {
+    const form = e.currentTarget.form;
+    if (!form) return;
+    const nameInput = form.querySelector<HTMLInputElement>('[name="requesterName"]');
+    const departmentInput = form.querySelector<HTMLInputElement>('[name="requesterDepartment"]');
+    const result = await fetchEmployeeInfo(e.currentTarget.value);
+    if (!result) return;
+    if (nameInput) nameInput.value = result.name;
+    if (departmentInput) departmentInput.value = result.branchName;
+  }
+
   return (
     <form
       ref={formRef}
@@ -135,6 +147,7 @@ export default function SampleForm({ currentUser }: SampleFormProps) {
             <input
               name="requesterEmployeeNumber"
               defaultValue={currentUser?.employeeNumber || ""}
+              onBlur={handleEmployeeLookupBlur}
               className={inputCls}
             />
           </Field>

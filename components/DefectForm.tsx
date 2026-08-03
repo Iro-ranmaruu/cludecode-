@@ -3,6 +3,8 @@
 import { useId, useRef, useState } from "react";
 import { submitDefectRequestAction } from "@/lib/defect-actions";
 import { fetchProductInfo } from "@/lib/product-lookup-client";
+import { fetchEmployeeInfo } from "@/lib/employee-lookup-client";
+import { fetchCustomerInfo } from "@/lib/customer-lookup-client";
 import { DEFECT_CATEGORY_OPTIONS, SEND_DESTINATION_OPTIONS } from "@/lib/defect-types";
 import {
   RequiredProgressBar,
@@ -92,6 +94,30 @@ export default function DefectForm({ currentUser }: DefectFormProps) {
     }
   }
 
+  async function handleEmployeeLookupBlur(e: React.FocusEvent<HTMLInputElement>) {
+    const form = e.currentTarget.form;
+    if (!form) return;
+    const staffNameInput = form.querySelector<HTMLInputElement>('[name="staffName"]');
+    const branchNameInput = form.querySelector<HTMLInputElement>('[name="branchName"]');
+    const branchCodeInput = form.querySelector<HTMLInputElement>('[name="branchCode"]');
+    const supervisorInput = form.querySelector<HTMLInputElement>('[name="supervisorName"]');
+    const result = await fetchEmployeeInfo(e.currentTarget.value);
+    if (!result) return;
+    if (staffNameInput) staffNameInput.value = result.name;
+    if (branchNameInput) branchNameInput.value = result.branchName;
+    if (branchCodeInput) branchCodeInput.value = result.branchCode;
+    if (supervisorInput) supervisorInput.value = result.supervisorName;
+  }
+
+  async function handleCustomerCodeLookupBlur(e: React.FocusEvent<HTMLInputElement>) {
+    const form = e.currentTarget.form;
+    if (!form) return;
+    const facilityNameInput = form.querySelector<HTMLInputElement>('[name="customerFacilityName"]');
+    const result = await fetchCustomerInfo(e.currentTarget.value);
+    if (!result || !facilityNameInput) return;
+    facilityNameInput.value = result.customerName;
+  }
+
   return (
     <form
       ref={formRef}
@@ -142,6 +168,7 @@ export default function DefectForm({ currentUser }: DefectFormProps) {
             <input
               name="employeeNumber"
               defaultValue={currentUser?.employeeNumber || ""}
+              onBlur={handleEmployeeLookupBlur}
               className={inputCls}
             />
           </Field>
@@ -154,7 +181,12 @@ export default function DefectForm({ currentUser }: DefectFormProps) {
             <input name="customerFacilityName" required className={inputCls} />
           </Field>
           <Field label="得意先コード">
-            <input name="customerCode" placeholder="例: IK919100" className={inputCls} />
+            <input
+              name="customerCode"
+              placeholder="例: IK919100"
+              onBlur={handleCustomerCodeLookupBlur}
+              className={inputCls}
+            />
           </Field>
           <Field label="部署">
             <input name="department" className={inputCls} />
