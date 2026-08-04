@@ -1,6 +1,7 @@
 "use client";
 
 import { useId, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { submitRequestAction } from "@/lib/actions";
 import { fetchProductInfo } from "@/lib/product-lookup-client";
 import { fetchEmployeeInfo } from "@/lib/employee-lookup-client";
@@ -17,6 +18,7 @@ const inputCls =
 const autoFilledCls =
   "w-full rounded-md border border-slate-300 bg-slate-100 px-3 py-1.5 text-sm text-slate-500 shadow-sm cursor-not-allowed";
 const labelCls = "block text-xs font-medium text-slate-600 mb-1";
+const MARGIN_WARNING_THRESHOLD = 0.15;
 
 function Field({
   label,
@@ -68,6 +70,7 @@ interface RequestFormProps {
 
 export default function RequestForm({ currentUser }: RequestFormProps) {
   const uid = useId();
+  const router = useRouter();
   const [itemIds, setItemIds] = useState<string[]>([`${uid}-0`]);
   const [customerCodeIds, setCustomerCodeIds] = useState<string[]>([
     `${uid}-c0`,
@@ -75,11 +78,34 @@ export default function RequestForm({ currentUser }: RequestFormProps) {
   const formRef = useRef<HTMLFormElement>(null);
   const progress = useRequiredProgress(formRef);
   const [showValidationBanner, setShowValidationBanner] = useState(false);
+  const [showMarginWarning, setShowMarginWarning] = useState(false);
+
+  function hasExcessiveMargin(form: HTMLFormElement): boolean {
+    const rows = Array.from(form.querySelectorAll<HTMLElement>("[data-item-row]"));
+    return rows.some((row) => {
+      const deliveryInput = row.querySelector<HTMLInputElement>('[data-field="deliveryPrice"]');
+      const standardInput = row.querySelector<HTMLInputElement>(
+        '[data-field="standardWholesalePrice"]'
+      );
+      const delivery = Number(deliveryInput?.value);
+      const standard = Number(standardInput?.value);
+      if (!delivery || !standard) return false;
+      const margin = (delivery - standard) / delivery;
+      return margin >= MARGIN_WARNING_THRESHOLD;
+    });
+  }
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     const ok = validateAndHighlight(e.currentTarget);
     setShowValidationBanner(!ok);
-    if (!ok) e.preventDefault();
+    if (!ok) {
+      e.preventDefault();
+      return;
+    }
+    if (hasExcessiveMargin(e.currentTarget)) {
+      e.preventDefault();
+      setShowMarginWarning(true);
+    }
   }
 
   async function handleEmployeeLookupBlur(e: React.FocusEvent<HTMLInputElement>) {
@@ -139,6 +165,7 @@ export default function RequestForm({ currentUser }: RequestFormProps) {
   }
 
   return (
+    <>
     <form
       ref={formRef}
       action={submitRequestAction}
@@ -194,6 +221,32 @@ export default function RequestForm({ currentUser }: RequestFormProps) {
           </Field>
           <Field label="所属長名">
             <input name="supervisorName" readOnly placeholder="自動入力" className={autoFilledCls} />
+          </Field>
+        </div>
+      </Section>
+
+      <Section title="特価申請理由・特記事項">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <Field label="特価申請理由" required>
+            <select name="reasonType" required defaultValue="" className={inputCls}>
+              <option value="" disabled>
+                選択してください
+              </option>
+              <option value="新規">1. 新規</option>
+              <option value="防衛">2. 防衛</option>
+              <option value="自社既納入品の変更">
+                3. 自社既納入品の変更
+              </option>
+            </select>
+          </Field>
+        </div>
+        <div className="mt-4">
+          <Field label="その他特記事項（事前承認がある場合もこちらへ記入）">
+            <textarea
+              name="specialNotes"
+              rows={3}
+              className={inputCls}
+            />
           </Field>
         </div>
       </Section>
@@ -336,6 +389,7 @@ export default function RequestForm({ currentUser }: RequestFormProps) {
                     type="number"
                     step="any"
                     name={`items[${i}][deliveryPrice]`}
+                    data-field="deliveryPrice"
                     required
                     className={inputCls}
                   />
@@ -453,32 +507,6 @@ export default function RequestForm({ currentUser }: RequestFormProps) {
         </div>
       </Section>
 
-      <Section title="特価申請理由・特記事項">
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <Field label="特価申請理由" required>
-            <select name="reasonType" required defaultValue="" className={inputCls}>
-              <option value="" disabled>
-                選択してください
-              </option>
-              <option value="新規">1. 新規</option>
-              <option value="防衛">2. 防衛</option>
-              <option value="自社既納入品の変更">
-                3. 自社既納入品の変更
-              </option>
-            </select>
-          </Field>
-        </div>
-        <div className="mt-4">
-          <Field label="その他特記事項（事前承認がある場合もこちらへ記入）">
-            <textarea
-              name="specialNotes"
-              rows={3}
-              className={inputCls}
-            />
-          </Field>
-        </div>
-      </Section>
-
       <div className="flex justify-end gap-3">
         <button
           type="submit"
@@ -488,5 +516,33 @@ export default function RequestForm({ currentUser }: RequestFormProps) {
         </button>
       </div>
     </form>
+
+    {showMarginWarning && (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 px-4">
+        <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-xl">
+          <h3 className="text-base font-semibold text-slate-900">特価申請について</h3>
+          <p className="mt-3 text-sm leading-relaxed text-slate-700">
+            ムトウ全体の利益を確保するため、通常仕切りで計算した際に一定の割合以上の粗利がある場合は特価不要とさせていただきます。
+          </p>
+          <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+            <button
+              type="button"
+              onClick={() => setShowMarginWarning(false)}
+              className="rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+            >
+              納入価を訂正する
+            </button>
+            <button
+              type="button"
+              onClick={() => router.push("/")}
+              className="rounded-md bg-slate-900 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-slate-700"
+            >
+              特価申請を終了する
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
+    </>
   );
 }

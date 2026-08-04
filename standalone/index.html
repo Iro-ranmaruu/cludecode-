@@ -243,6 +243,13 @@
 
   .field-error-msg { margin-top: 4px; font-size: 11.5px; font-weight: 600; color: var(--bad); }
   input.field-invalid, select.field-invalid, textarea.field-invalid { border-color: var(--bad) !important; box-shadow: 0 0 0 3px var(--bad-soft) !important; }
+
+  .modal-overlay { position: fixed; inset: 0; z-index: 100; display: flex; align-items: center; justify-content: center; background: rgba(15, 23, 32, 0.5); padding: 16px; }
+  .modal-card { width: 100%; max-width: 420px; background: var(--surface); border-radius: var(--radius); padding: 24px; box-shadow: var(--shadow-md); }
+  .modal-card h3 { margin: 0 0 10px; font-size: 16px; font-weight: 700; color: var(--ink); }
+  .modal-card p { margin: 0; font-size: 13.5px; line-height: 1.7; color: var(--ink-soft); }
+  .modal-actions { margin-top: 20px; display: flex; flex-direction: column-reverse; gap: 8px; justify-content: flex-end; }
+  @media (min-width: 480px) { .modal-actions { flex-direction: row; } }
 </style>
 </head>
 <body>
@@ -379,6 +386,39 @@
   function showValidationBanner(show) {
     var el = document.getElementById("validation-banner");
     if (el) el.style.display = show ? "" : "none";
+  }
+
+  var MARGIN_WARNING_THRESHOLD = 0.15;
+
+  function hasExcessiveMargin(items) {
+    return items.some(function (item) {
+      var delivery = item.deliveryPrice;
+      var standard = item.standardWholesalePrice;
+      if (!delivery || !standard) return false;
+      return (delivery - standard) / delivery >= MARGIN_WARNING_THRESHOLD;
+    });
+  }
+
+  function showMarginWarningModal() {
+    var overlay = document.createElement("div");
+    overlay.className = "modal-overlay";
+    overlay.innerHTML =
+      '<div class="modal-card">' +
+        '<h3>特価申請について</h3>' +
+        '<p>ムトウ全体の利益を確保するため、通常仕切りで計算した際に一定の割合以上の粗利がある場合は特価不要とさせていただきます。</p>' +
+        '<div class="modal-actions">' +
+          '<button type="button" class="btn-secondary" data-modal-fix>納入価を訂正する</button>' +
+          '<button type="button" class="btn btn-primary" data-modal-end>特価申請を終了する</button>' +
+        '</div>' +
+      '</div>';
+    document.body.appendChild(overlay);
+    overlay.querySelector("[data-modal-fix]").addEventListener("click", function () {
+      overlay.remove();
+    });
+    overlay.querySelector("[data-modal-end]").addEventListener("click", function () {
+      overlay.remove();
+      location.hash = "#/";
+    });
   }
 
   function validateAndHighlightForm(form) {
@@ -865,6 +905,14 @@
           '<div>' + fieldLabel("店所コード") + '<input type="text" class="auto-filled" name="branchCode" placeholder="自動入力" readonly /></div>' +
           '<div>' + fieldLabel("所属長名") + '<input type="text" class="auto-filled" name="supervisorName" placeholder="自動入力" readonly /></div>' +
         '</div></section>' +
+      '<section class="panel"><h2>特価申請理由・特記事項</h2>' +
+        '<div class="grid" style="margin-top:16px;">' +
+          '<div>' + fieldLabel("特価申請理由", true) +
+            '<select name="reasonType" required><option value="" disabled selected>選択してください</option>' +
+              '<option value="新規">1. 新規</option><option value="防衛">2. 防衛</option><option value="自社既納入品の変更">3. 自社既納入品の変更</option></select></div>' +
+        '</div>' +
+        '<div style="margin-top:16px;">' + fieldLabel("その他特記事項（事前承認がある場合もこちらへ記入）") + '<textarea name="specialNotes" rows="3"></textarea></div>' +
+      '</section>' +
       '<section class="panel"><h2>得意先情報</h2>' +
         '<div class="grid" style="margin-top:16px;">' +
           '<div>' + fieldLabel("得意先施設名") + '<input type="text" class="auto-filled" name="customerFacilityName" placeholder="自動入力" readonly /></div>' +
@@ -889,14 +937,6 @@
           '<div>' + fieldLabel("納入価") + '<input type="text" name="competitorDeliveryPrice" /></div>' +
           '<div>' + fieldLabel("納入業者") + '<input type="text" name="competitorVendor" /></div>' +
         '</div></section>' +
-      '<section class="panel"><h2>特価申請理由・特記事項</h2>' +
-        '<div class="grid" style="margin-top:16px;">' +
-          '<div>' + fieldLabel("特価申請理由", true) +
-            '<select name="reasonType" required><option value="" disabled selected>選択してください</option>' +
-              '<option value="新規">1. 新規</option><option value="防衛">2. 防衛</option><option value="自社既納入品の変更">3. 自社既納入品の変更</option></select></div>' +
-        '</div>' +
-        '<div style="margin-top:16px;">' + fieldLabel("その他特記事項（事前承認がある場合もこちらへ記入）") + '<textarea name="specialNotes" rows="3"></textarea></div>' +
-      '</section>' +
       '<div class="actions-right"><button type="submit" class="btn btn-primary">企画へ申請する</button></div>' +
       '</form>'
     );
@@ -956,6 +996,7 @@
       showValidationBanner(!isValid);
       if (!isValid) return;
       if (items.length === 0) { alert("商品明細を1件以上入力してください。"); return; }
+      if (hasExcessiveMargin(items)) { showMarginWarningModal(); return; }
 
       var ccInputs = Array.prototype.filter.call(ccList.querySelectorAll("[data-cc-input]"), function (el) { return el.value.trim() !== ""; });
       if (ccInputs.some(function (el) { return !/^[0-9A-Za-z]{6}$/.test(el.value.trim()); })) { alert("得意先コードは半角英数字6桁で入力してください。"); return; }
