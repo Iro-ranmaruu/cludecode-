@@ -40,7 +40,12 @@ export function useRequiredProgress(formRef: RefObject<HTMLFormElement | null>) 
     form.addEventListener("input", compute);
     form.addEventListener("change", compute);
     const observer = new MutationObserver(compute);
-    observer.observe(form, { childList: true, subtree: true });
+    observer.observe(form, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      attributeFilter: ["required"],
+    });
 
     return () => {
       form.removeEventListener("input", compute);

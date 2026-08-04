@@ -74,6 +74,7 @@ function rowToRequest(row: any, items: RequestItemRecord[]): RequestRecord {
     competitorVendor: row.competitor_vendor,
     reasonType: row.reason_type,
     specialNotes: row.special_notes,
+    preApprovedByPlanning: !!row.pre_approved_by_planning,
     planningRemarks: row.planning_remarks,
     status: row.status,
     items,
@@ -91,14 +92,14 @@ export function createRequest(input: RequestInput): string {
       delivery_department, customer_codes, competitor_maker_name,
       competitor_product_name, competitor_product_code, competitor_jan_code,
       competitor_purchase_price, competitor_delivery_price, competitor_vendor,
-      reason_type, special_notes, planning_remarks, status
+      reason_type, special_notes, pre_approved_by_planning, planning_remarks, status
     ) VALUES (
       @id, @created_at, @updated_at, @created_by, @application_date, @branch_name, @branch_code,
       @supervisor_name, @staff_name, @employee_number, @customer_facility_name,
       @delivery_department, @customer_codes, @competitor_maker_name,
       @competitor_product_name, @competitor_product_code, @competitor_jan_code,
       @competitor_purchase_price, @competitor_delivery_price, @competitor_vendor,
-      @reason_type, @special_notes, @planning_remarks, @status
+      @reason_type, @special_notes, @pre_approved_by_planning, @planning_remarks, @status
     )
   `);
 
@@ -144,6 +145,7 @@ export function createRequest(input: RequestInput): string {
       competitor_vendor: input.competitorVendor || null,
       reason_type: input.reasonType || null,
       special_notes: input.specialNotes || null,
+      pre_approved_by_planning: input.preApprovedByPlanning ? 1 : 0,
       planning_remarks: null,
       status: "submitted",
     });

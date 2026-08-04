@@ -79,6 +79,8 @@ export default function RequestForm({ currentUser }: RequestFormProps) {
   const progress = useRequiredProgress(formRef);
   const [showValidationBanner, setShowValidationBanner] = useState(false);
   const [showMarginWarning, setShowMarginWarning] = useState(false);
+  const [showGuidelineWarning, setShowGuidelineWarning] = useState(false);
+  const [preApproved, setPreApproved] = useState(false);
 
   function hasExcessiveMargin(form: HTMLFormElement): boolean {
     const rows = Array.from(form.querySelectorAll<HTMLElement>("[data-item-row]"));
@@ -95,6 +97,20 @@ export default function RequestForm({ currentUser }: RequestFormProps) {
     });
   }
 
+  function hasDesiredBelowGuideline(form: HTMLFormElement): boolean {
+    const rows = Array.from(form.querySelectorAll<HTMLElement>("[data-item-row]"));
+    return rows.some((row) => {
+      const desiredInput = row.querySelector<HTMLInputElement>(
+        '[data-field="desiredWholesalePrice"]'
+      );
+      const guidelineInput = row.querySelector<HTMLInputElement>('[data-field="guidelinePrice"]');
+      const desired = Number(desiredInput?.value);
+      const guideline = Number(guidelineInput?.value);
+      if (!desired || !guideline) return false;
+      return desired < guideline;
+    });
+  }
+
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     const ok = validateAndHighlight(e.currentTarget);
     setShowValidationBanner(!ok);
@@ -105,6 +121,11 @@ export default function RequestForm({ currentUser }: RequestFormProps) {
     if (hasExcessiveMargin(e.currentTarget)) {
       e.preventDefault();
       setShowMarginWarning(true);
+      return;
+    }
+    if (!preApproved && hasDesiredBelowGuideline(e.currentTarget)) {
+      e.preventDefault();
+      setShowGuidelineWarning(true);
     }
   }
 
@@ -225,7 +246,7 @@ export default function RequestForm({ currentUser }: RequestFormProps) {
         </div>
       </Section>
 
-      <Section title="特価申請理由・特記事項">
+      <Section title="特価申請理由">
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Field label="特価申請理由" required>
             <select name="reasonType" required defaultValue="" className={inputCls}>
@@ -238,15 +259,6 @@ export default function RequestForm({ currentUser }: RequestFormProps) {
                 3. 自社既納入品の変更
               </option>
             </select>
-          </Field>
-        </div>
-        <div className="mt-4">
-          <Field label="その他特記事項（事前承認がある場合もこちらへ記入）">
-            <textarea
-              name="specialNotes"
-              rows={3}
-              className={inputCls}
-            />
           </Field>
         </div>
       </Section>
@@ -406,21 +418,22 @@ export default function RequestForm({ currentUser }: RequestFormProps) {
                     メーカーコード・商品コードから商品マスタを参照して自動入力されます（手動で修正可）
                   </p>
                 </Field>
-                <Field label="特価目安" required>
+                <Field label="特価目安">
                   <input
                     type="number"
                     step="any"
                     name={`items[${i}][guidelinePrice]`}
                     data-field="guidelinePrice"
-                    required
                     className={inputCls}
                   />
                 </Field>
-                <Field label="希望仕切額">
+                <Field label="希望仕切額" required>
                   <input
                     type="number"
                     step="any"
                     name={`items[${i}][desiredWholesalePrice]`}
+                    data-field="desiredWholesalePrice"
+                    required
                     className={inputCls}
                   />
                 </Field>
@@ -481,6 +494,42 @@ export default function RequestForm({ currentUser }: RequestFormProps) {
         </button>
       </Section>
 
+      <Section title="特記事項">
+        <label className="flex items-center gap-2 text-sm text-slate-700">
+          <input
+            type="checkbox"
+            name="preApprovedByPlanning"
+            checked={preApproved}
+            onChange={(e) => {
+              const checked = e.target.checked;
+              setPreApproved(checked);
+              if (!checked) {
+                const notesInput = e.currentTarget.form?.querySelector<HTMLTextAreaElement>(
+                  '[name="specialNotes"]'
+                );
+                if (notesInput) {
+                  notesInput.classList.remove("border-rose-400", "ring-1", "ring-rose-300");
+                  notesInput.parentElement?.querySelector("[data-field-error]")?.remove();
+                }
+              }
+            }}
+            className="h-4 w-4 rounded border-slate-300"
+          />
+          WiSM企画事前承認済み
+        </label>
+        <div className="mt-4">
+          <Field label="その他特記事項（事前承認がある場合もこちらへ記入）" required={preApproved}>
+            <textarea
+              name="specialNotes"
+              rows={3}
+              disabled={!preApproved}
+              required={preApproved}
+              className={`${inputCls} disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400`}
+            />
+          </Field>
+        </div>
+      </Section>
+
       <Section title="既納入品・競合提示製品情報（任意）">
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           <Field label="メーカー名">
@@ -538,6 +587,36 @@ export default function RequestForm({ currentUser }: RequestFormProps) {
               className="rounded-md bg-slate-900 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-slate-700"
             >
               特価申請を終了する
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
+
+    {showGuidelineWarning && (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 px-4">
+        <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-xl">
+          <h3 className="text-base font-semibold text-slate-900">特価申請について</h3>
+          <p className="mt-3 text-sm leading-relaxed text-slate-700">
+            希望仕切り金額が特価目安を下回る場合、申請却下になる場合があります。WiSM企画に事前相談済みの場合は相談済みタブを押してください。
+          </p>
+          <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+            <button
+              type="button"
+              onClick={() => setShowGuidelineWarning(false)}
+              className="rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+            >
+              戻る
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setPreApproved(true);
+                setShowGuidelineWarning(false);
+              }}
+              className="rounded-md bg-slate-900 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-slate-700"
+            >
+              相談済み
             </button>
           </div>
         </div>

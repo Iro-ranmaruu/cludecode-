@@ -98,6 +98,7 @@ db.exec(`
     competitor_vendor TEXT,
     reason_type TEXT,
     special_notes TEXT,
+    pre_approved_by_planning INTEGER NOT NULL DEFAULT 0,
     planning_remarks TEXT,
     status TEXT NOT NULL DEFAULT 'submitted'
   );
@@ -240,6 +241,18 @@ function migrateEmployeeDirectoryColumns() {
 }
 
 migrateEmployeeDirectoryColumns();
+
+function migrateRequestsColumns() {
+  const columns = db.prepare(`PRAGMA table_info(requests)`).all() as {
+    name: string;
+  }[];
+  if (columns.some((c) => c.name === "pre_approved_by_planning")) return;
+  db.exec(
+    `ALTER TABLE requests ADD COLUMN pre_approved_by_planning INTEGER NOT NULL DEFAULT 0`
+  );
+}
+
+migrateRequestsColumns();
 
 function seedProductMasterIfEmpty() {
   const row = db.prepare(`SELECT COUNT(*) AS cnt FROM product_master`).get() as {

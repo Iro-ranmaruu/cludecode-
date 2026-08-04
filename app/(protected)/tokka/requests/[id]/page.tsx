@@ -220,6 +220,10 @@ export default async function RequestDetailPage({
           </h2>
           <dl className="mt-4 grid grid-cols-1 gap-4">
             <InfoItem label="特価申請理由" value={request.reasonType} />
+            <InfoItem
+              label="WiSM企画事前承認済み"
+              value={request.preApprovedByPlanning ? "済み" : "—"}
+            />
             <InfoItem label="その他特記事項" value={request.specialNotes} />
           </dl>
         </section>

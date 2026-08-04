@@ -50,6 +50,7 @@ export interface RequestInput {
   competitorVendor: string;
   reasonType: string;
   specialNotes: string;
+  preApprovedByPlanning: boolean;
   items: RequestItemInput[];
 }
 
@@ -98,6 +99,7 @@ export interface RequestRecord {
   competitorVendor: string | null;
   reasonType: string | null;
   specialNotes: string | null;
+  preApprovedByPlanning: boolean;
   planningRemarks: string | null;
   status: RequestStatus;
   items: RequestItemRecord[];

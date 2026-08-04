@@ -90,6 +90,7 @@ export async function submitRequestAction(formData: FormData) {
     competitorVendor: str(formData, "competitorVendor"),
     reasonType: str(formData, "reasonType"),
     specialNotes: str(formData, "specialNotes"),
+    preApprovedByPlanning: str(formData, "preApprovedByPlanning") === "on",
     items,
   };
 
