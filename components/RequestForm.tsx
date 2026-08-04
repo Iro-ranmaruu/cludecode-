@@ -500,34 +500,18 @@ export default function RequestForm({ currentUser }: RequestFormProps) {
             type="checkbox"
             name="preApprovedByPlanning"
             checked={preApproved}
-            onChange={(e) => {
-              const checked = e.target.checked;
-              setPreApproved(checked);
-              if (!checked) {
-                const notesInput = e.currentTarget.form?.querySelector<HTMLTextAreaElement>(
-                  '[name="specialNotes"]'
-                );
-                if (notesInput) {
-                  notesInput.classList.remove("border-rose-400", "ring-1", "ring-rose-300");
-                  notesInput.parentElement?.querySelector("[data-field-error]")?.remove();
-                }
-              }
-            }}
+            onChange={(e) => setPreApproved(e.target.checked)}
             className="h-4 w-4 rounded border-slate-300"
           />
           WiSM企画事前承認済み
         </label>
-        <div className="mt-4">
-          <Field label="その他特記事項（事前承認がある場合もこちらへ記入）" required={preApproved}>
-            <textarea
-              name="specialNotes"
-              rows={3}
-              disabled={!preApproved}
-              required={preApproved}
-              className={`${inputCls} disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400`}
-            />
-          </Field>
-        </div>
+        {preApproved && (
+          <div className="mt-4">
+            <Field label="その他特記事項（事前承認がある場合もこちらへ記入）" required>
+              <textarea name="specialNotes" rows={3} required className={inputCls} />
+            </Field>
+          </div>
+        )}
       </Section>
 
       <Section title="既納入品・競合提示製品情報（任意）">

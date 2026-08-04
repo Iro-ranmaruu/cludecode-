@@ -959,8 +959,8 @@
         '<button type="button" class="btn-secondary add-row-btn" id="add-item">+ 商品行を追加</button></section>' +
       '<section class="panel"><h2>特記事項</h2>' +
         '<label class="checkbox-line"><input type="checkbox" id="pre-approved-checkbox" name="preApprovedByPlanning" /> WiSM企画事前承認済み</label>' +
-        '<div style="margin-top:16px;">' + fieldLabel("その他特記事項（事前承認がある場合もこちらへ記入）") +
-          '<textarea name="specialNotes" id="special-notes-textarea" rows="3" disabled></textarea></div>' +
+        '<div id="special-notes-wrap" style="margin-top:16px; display:none;">' + fieldLabel("その他特記事項（事前承認がある場合もこちらへ記入）") +
+          '<textarea name="specialNotes" id="special-notes-textarea" rows="3"></textarea></div>' +
       '</section>' +
       '<section class="panel"><h2>既納入品・競合提示製品情報（任意）</h2>' +
         '<div class="grid cols-3" style="margin-top:16px;">' +
@@ -1005,13 +1005,15 @@
 
     var preApprovedCheckbox = document.getElementById("pre-approved-checkbox");
     var specialNotesTextarea = document.getElementById("special-notes-textarea");
+    var specialNotesWrap = document.getElementById("special-notes-wrap");
     preApprovedCheckbox.addEventListener("change", function () {
       var checked = preApprovedCheckbox.checked;
-      specialNotesTextarea.disabled = !checked;
+      specialNotesWrap.style.display = checked ? "" : "none";
       if (checked) {
         specialNotesTextarea.setAttribute("data-required", "");
       } else {
         specialNotesTextarea.removeAttribute("data-required");
+        specialNotesTextarea.value = "";
         specialNotesTextarea.classList.remove("field-invalid");
         var errMsg = specialNotesTextarea.parentElement.querySelector("[data-field-error]");
         if (errMsg) errMsg.remove();
