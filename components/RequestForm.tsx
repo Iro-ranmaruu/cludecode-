@@ -257,14 +257,12 @@ export default function RequestForm({ currentUser }: RequestFormProps) {
               name="applicationDate"
               required
               className={inputCls}
-              defaultValue={new Date().toISOString().slice(0, 10)}
             />
           </Field>
           <Field label="社員番号" required>
             <input
               name="employeeNumber"
               required
-              defaultValue={currentUser?.employeeNumber || ""}
               onBlur={handleEmployeeLookupBlur}
               className={inputCls}
             />

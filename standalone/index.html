@@ -1038,8 +1038,8 @@
       '<form id="tokka-form" novalidate>' +
       '<section class="panel"><h2>申請者情報</h2>' +
         '<div class="grid cols-3" style="margin-top:16px;">' +
-          '<div>' + fieldLabel("申請日", true) + '<input type="date" name="applicationDate" required value="' + todayStr() + '" /></div>' +
-          '<div>' + fieldLabel("社員番号", true) + '<input type="text" name="employeeNumber" required value="' + esc(user.employeeNumber || "") + '" /></div>' +
+          '<div>' + fieldLabel("申請日", true) + '<input type="date" name="applicationDate" required /></div>' +
+          '<div>' + fieldLabel("社員番号", true) + '<input type="text" name="employeeNumber" required /></div>' +
           '<div>' + fieldLabel("担当者名") + '<input type="text" class="auto-filled" name="staffName" placeholder="自動入力" readonly value="' + esc(user.name || "") + '" /></div>' +
           '<div>' + fieldLabel("店所名") + '<input type="text" class="auto-filled" name="branchName" placeholder="自動入力" readonly value="' + esc(user.branchName || "") + '" /></div>' +
           '<div>' + fieldLabel("店所コード") + '<input type="text" class="auto-filled" name="branchCode" placeholder="自動入力" readonly /></div>' +
