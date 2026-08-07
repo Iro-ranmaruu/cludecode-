@@ -944,6 +944,10 @@
         '</div>' +
       '</section>' +
       '<section class="panel"><h2>得意先情報</h2>' +
+        '<div class="radio-row" style="margin-top:16px;">' +
+          '<label><input type="radio" name="customerType" id="customer-type-new" value="新規" /> 新規得意先</label>' +
+          '<label><input type="radio" name="customerType" id="customer-type-existing" value="既存" checked /> 既存得意先</label>' +
+        '</div>' +
         '<div class="grid" style="margin-top:16px;">' +
           '<div>' + fieldLabel("得意先施設名") + '<input type="text" class="auto-filled" name="customerFacilityName" placeholder="自動入力" readonly /></div>' +
           '<div>' + fieldLabel("施設内の納入部所") + '<input type="text" name="deliveryDepartment" /></div>' +
@@ -990,6 +994,33 @@
     var facilityNameInput = tokkaFormEl.querySelector('[name="customerFacilityName"]');
     Array.prototype.forEach.call(ccList.querySelectorAll("[data-cc-input]"), function (input) {
       wireCustomerLookup(input, facilityNameInput);
+    });
+
+    function applyCustomerType(type) {
+      var firstCcInput = ccList.querySelector("[data-cc-input]");
+      if (type === "新規") {
+        if (firstCcInput) { firstCcInput.value = "TL0000"; firstCcInput.readOnly = true; }
+        if (facilityNameInput) {
+          facilityNameInput.value = "";
+          facilityNameInput.readOnly = false;
+          facilityNameInput.classList.remove("auto-filled");
+          facilityNameInput.placeholder = "得意先名称を入力してください";
+        }
+      } else {
+        if (firstCcInput) { firstCcInput.value = ""; firstCcInput.readOnly = false; }
+        if (facilityNameInput) {
+          facilityNameInput.value = "";
+          facilityNameInput.readOnly = true;
+          facilityNameInput.classList.add("auto-filled");
+          facilityNameInput.placeholder = "自動入力";
+        }
+      }
+    }
+    document.getElementById("customer-type-new").addEventListener("change", function () {
+      if (this.checked) applyCustomerType("新規");
+    });
+    document.getElementById("customer-type-existing").addEventListener("change", function () {
+      if (this.checked) applyCustomerType("既存");
     });
 
     document.getElementById("add-cc").addEventListener("click", function () {

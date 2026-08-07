@@ -81,6 +81,22 @@ export default function RequestForm({ currentUser }: RequestFormProps) {
   const [showMarginWarning, setShowMarginWarning] = useState(false);
   const [showGuidelineWarning, setShowGuidelineWarning] = useState(false);
   const [preApproved, setPreApproved] = useState(false);
+  const [customerType, setCustomerType] = useState<"既存" | "新規">("既存");
+
+  function handleCustomerTypeChange(type: "既存" | "新規") {
+    setCustomerType(type);
+    const form = formRef.current;
+    if (!form) return;
+    const codeInput = form.querySelector<HTMLInputElement>('input[name="customerCodes[]"]');
+    const facilityInput = form.querySelector<HTMLInputElement>('[name="customerFacilityName"]');
+    if (type === "新規") {
+      if (codeInput) codeInput.value = "TL0000";
+      if (facilityInput) facilityInput.value = "";
+    } else {
+      if (codeInput) codeInput.value = "";
+      if (facilityInput) facilityInput.value = "";
+    }
+  }
 
   function hasExcessiveMargin(form: HTMLFormElement): boolean {
     const rows = Array.from(form.querySelectorAll<HTMLElement>("[data-item-row]"));
@@ -264,13 +280,38 @@ export default function RequestForm({ currentUser }: RequestFormProps) {
       </Section>
 
       <Section title="得意先情報">
+        <div className="mb-4 flex gap-5">
+          <label className="flex items-center gap-2 text-sm text-slate-700">
+            <input
+              type="radio"
+              name="customerType"
+              value="新規"
+              checked={customerType === "新規"}
+              onChange={() => handleCustomerTypeChange("新規")}
+              className="h-4 w-4 border-slate-300"
+            />
+            新規得意先
+          </label>
+          <label className="flex items-center gap-2 text-sm text-slate-700">
+            <input
+              type="radio"
+              name="customerType"
+              value="既存"
+              checked={customerType === "既存"}
+              onChange={() => handleCustomerTypeChange("既存")}
+              className="h-4 w-4 border-slate-300"
+            />
+            既存得意先
+          </label>
+        </div>
+
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Field label="得意先施設名">
             <input
               name="customerFacilityName"
-              readOnly
-              placeholder="自動入力"
-              className={autoFilledCls}
+              readOnly={customerType === "既存"}
+              placeholder={customerType === "新規" ? "得意先名称を入力してください" : "自動入力"}
+              className={customerType === "既存" ? autoFilledCls : inputCls}
             />
           </Field>
           <Field label="施設内の納入部所">
@@ -295,10 +336,15 @@ export default function RequestForm({ currentUser }: RequestFormProps) {
                   maxLength={6}
                   pattern="[0-9A-Za-z]{6}"
                   title="半角英数字6桁で入力してください"
-                  placeholder="例: JI7000"
+                  placeholder={i === 0 && customerType === "新規" ? "TL0000" : "例: JI7000"}
+                  readOnly={i === 0 && customerType === "新規"}
                   style={{ textTransform: "uppercase" }}
                   onBlur={handleCustomerCodeLookupBlur}
-                  className={`${inputCls} max-w-[140px]`}
+                  className={
+                    i === 0 && customerType === "新規"
+                      ? `${autoFilledCls} max-w-[140px]`
+                      : `${inputCls} max-w-[140px]`
+                  }
                 />
                 <span className="text-sm text-slate-400">+ 00</span>
                 {customerCodeIds.length > 1 && (
