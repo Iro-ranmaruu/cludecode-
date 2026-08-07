@@ -250,6 +250,20 @@
   .modal-card p { margin: 0; font-size: 13.5px; line-height: 1.7; color: var(--ink-soft); }
   .modal-actions { margin-top: 20px; display: flex; flex-direction: column-reverse; gap: 8px; justify-content: flex-end; }
   @media (min-width: 480px) { .modal-actions { flex-direction: row; } }
+
+  .product-search-results {
+    display: none; position: absolute; z-index: 20; top: 100%; left: 0; right: 0; margin-top: 4px;
+    max-height: 240px; overflow-y: auto; background: var(--surface); border: 1px solid var(--line);
+    border-radius: 8px; box-shadow: var(--shadow-md);
+  }
+  .product-search-results.open { display: block; }
+  .product-search-result-item {
+    display: block; width: 100%; text-align: left; padding: 7px 12px; font-size: 13px;
+    background: none; border: none; cursor: pointer; font-family: inherit; color: var(--ink);
+  }
+  .product-search-result-item:hover { background: var(--line-soft); }
+  .product-search-result-item .name { font-weight: 600; }
+  .product-search-result-item .code { margin-left: 8px; font-size: 11px; color: var(--ink-soft); }
 </style>
 </head>
 <body>
@@ -560,6 +574,7 @@
       var newRow = wrapper.firstElementChild;
       container.appendChild(newRow);
       wireProductLookup(newRow);
+      wireProductNameSearch(newRow);
       renumber();
     });
     container.addEventListener("click", function (e) {
@@ -571,7 +586,10 @@
         }
       }
     });
-    container.querySelectorAll("[data-item-row]").forEach(wireProductLookup);
+    container.querySelectorAll("[data-item-row]").forEach(function (row) {
+      wireProductLookup(row);
+      wireProductNameSearch(row);
+    });
     renumber();
   }
 
@@ -669,6 +687,91 @@
     };
     makerInput.addEventListener("blur", handler);
     productInput.addEventListener("blur", handler);
+  }
+
+  function searchProductsByName(query, limit) {
+    var q = (query || "").trim();
+    if (!q) return [];
+    var max = limit || 20;
+    var results = [];
+    for (var i = 0; i < PRODUCT_MASTER.length; i++) {
+      var row = PRODUCT_MASTER[i];
+      if (row[2].indexOf(q) !== -1) {
+        results.push({
+          makerCode: row[0], productCode: row[1], productName: row[2],
+          packingUnit: row[3] || "", janCode: row[4] || "",
+          standardWholesalePrice: row[5], guidelinePrice: row[6]
+        });
+        if (results.length >= max) break;
+      }
+    }
+    return results;
+  }
+
+  function wireProductNameSearch(row) {
+    var searchInput = row.querySelector("[data-product-name-search]");
+    var resultsEl = row.querySelector("[data-product-search-results]");
+    if (!searchInput || !resultsEl) return;
+
+    var makerInput = row.querySelector('[data-field="makerCode"]');
+    var productInput = row.querySelector('[data-field="productCode"]');
+    var nameInput = row.querySelector('[data-field="productName"]');
+    var unitInput = row.querySelector('[data-field="packingUnit"]');
+    var janInput = row.querySelector('[data-field="janCode"]');
+    var priceInput = row.querySelector('[data-field="standardWholesalePrice"]');
+    var guidelineInput = row.querySelector('[data-field="guidelinePrice"]');
+    var debounceTimer = null;
+
+    function renderResults(results) {
+      if (results.length === 0) {
+        resultsEl.classList.remove("open");
+        resultsEl.innerHTML = "";
+        return;
+      }
+      resultsEl.innerHTML = results.map(function (p) {
+        return (
+          '<button type="button" class="product-search-result-item" data-result-item ' +
+          'data-maker="' + esc(p.makerCode) + '" data-product="' + esc(p.productCode) + '" data-name="' + esc(p.productName) + '" ' +
+          'data-unit="' + esc(p.packingUnit) + '" data-jan="' + esc(p.janCode) + '" ' +
+          'data-price="' + (p.standardWholesalePrice != null ? p.standardWholesalePrice : "") + '" ' +
+          'data-guideline="' + (p.guidelinePrice != null ? p.guidelinePrice : "") + '">' +
+            '<span class="name">' + esc(p.productName) + '</span>' +
+            '<span class="code">' + esc(p.makerCode) + ' / ' + esc(p.productCode) + '</span>' +
+          '</button>'
+        );
+      }).join("");
+      resultsEl.classList.add("open");
+    }
+
+    searchInput.addEventListener("input", function () {
+      var q = searchInput.value.trim();
+      if (debounceTimer) clearTimeout(debounceTimer);
+      if (!q) { renderResults([]); return; }
+      debounceTimer = setTimeout(function () {
+        renderResults(searchProductsByName(q, 20));
+      }, 250);
+    });
+
+    resultsEl.addEventListener("click", function (e) {
+      var btn = e.target.closest("[data-result-item]");
+      if (!btn) return;
+      if (makerInput) makerInput.value = btn.getAttribute("data-maker");
+      if (productInput) productInput.value = btn.getAttribute("data-product");
+      if (nameInput) nameInput.value = btn.getAttribute("data-name");
+      if (unitInput) unitInput.value = btn.getAttribute("data-unit");
+      if (janInput) janInput.value = btn.getAttribute("data-jan");
+      if (priceInput) priceInput.value = btn.getAttribute("data-price");
+      if (guidelineInput) guidelineInput.value = btn.getAttribute("data-guideline");
+      searchInput.value = btn.getAttribute("data-name");
+      renderResults([]);
+      if (makerInput) makerInput.dispatchEvent(new Event("input", { bubbles: true }));
+    });
+
+    document.addEventListener("click", function (e) {
+      if (!row.contains(e.target)) {
+        resultsEl.classList.remove("open");
+      }
+    });
   }
 
   // ================= Employee master (社員番号 -> 氏名・店所名・店所コード・所属長名) =================
@@ -886,6 +989,12 @@
       '<div class="item-row" data-item-row>' +
         '<div class="item-row-head"><span class="title">商品 ' + (index + 1) + '</span>' +
           '<button type="button" class="link-btn danger" data-remove-item>この行を削除</button></div>' +
+        '<div style="position:relative; margin-bottom:12px;" data-product-search-wrap>' +
+          fieldLabel("商品名検索") +
+          '<input type="text" data-product-name-search placeholder="商品名で検索（部分一致）" autocomplete="off" />' +
+          '<div data-product-search-results class="product-search-results"></div>' +
+          '<p class="muted-xs" style="margin-top:4px;">商品名の一部を入力すると候補が表示されます。選択すると下の項目が自動入力されます。</p>' +
+        '</div>' +
         '<div class="grid cols-4">' +
           '<div>' + fieldLabel("メーカーコード", true) + '<input type="text" data-field="makerCode" required /></div>' +
           '<div>' + fieldLabel("商品コード", true) + '<input type="text" data-field="productCode" required /></div>' +

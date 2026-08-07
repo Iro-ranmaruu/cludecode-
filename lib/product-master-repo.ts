@@ -44,6 +44,21 @@ export function listProductMaster(): ProductMasterRecord[] {
   return (rows as any[]).map(rowToRecord);
 }
 
+export function searchProductMasterByName(
+  query: string,
+  limit = 20
+): ProductMasterRecord[] {
+  const q = query.trim();
+  if (q === "") return [];
+  const rows = db
+    .prepare(
+      `SELECT * FROM product_master WHERE product_name LIKE ? ORDER BY product_name LIMIT ?`
+    )
+    .all(`%${q}%`, limit);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return (rows as any[]).map(rowToRecord);
+}
+
 export function upsertProductMasterRow(input: {
   makerCode: string;
   productCode: string;

@@ -6,6 +6,8 @@ import { submitRequestAction } from "@/lib/actions";
 import { fetchProductInfo } from "@/lib/product-lookup-client";
 import { fetchEmployeeInfo } from "@/lib/employee-lookup-client";
 import { fetchCustomerInfo } from "@/lib/customer-lookup-client";
+import type { ProductSearchResult } from "@/lib/product-search-client";
+import ProductNameSearch from "@/components/ProductNameSearch";
 import {
   RequiredProgressBar,
   ValidationErrorBanner,
@@ -199,6 +201,38 @@ export default function RequestForm({ currentUser }: RequestFormProps) {
           result.guidelinePrice !== null ? String(result.guidelinePrice) : "";
       }
     }
+  }
+
+  function handleProductSearchSelect(rowIndex: number, product: ProductSearchResult) {
+    const form = formRef.current;
+    if (!form) return;
+    const rows = form.querySelectorAll<HTMLElement>("[data-item-row]");
+    const row = rows[rowIndex];
+    if (!row) return;
+    const makerInput = row.querySelector<HTMLInputElement>('[data-field="makerCode"]');
+    const productInput = row.querySelector<HTMLInputElement>('[data-field="productCode"]');
+    const nameInput = row.querySelector<HTMLInputElement>('[data-field="productName"]');
+    const unitInput = row.querySelector<HTMLInputElement>('[data-field="packingUnit"]');
+    const standardPriceInput = row.querySelector<HTMLInputElement>(
+      '[data-field="standardWholesalePrice"]'
+    );
+    const guidelinePriceInput = row.querySelector<HTMLInputElement>('[data-field="guidelinePrice"]');
+
+    if (makerInput) makerInput.value = product.makerCode;
+    if (productInput) productInput.value = product.productCode;
+    if (nameInput) nameInput.value = product.productName;
+    if (unitInput) unitInput.value = product.packingUnit;
+    if (standardPriceInput) {
+      standardPriceInput.value =
+        product.standardWholesalePrice !== null ? String(product.standardWholesalePrice) : "";
+    }
+    if (guidelinePriceInput) {
+      guidelinePriceInput.value =
+        product.guidelinePrice !== null ? String(product.guidelinePrice) : "";
+    }
+    // Programmatic value changes don't fire native input/change events, so nudge the
+    // required-field progress bar (and any lingering validation-error styling) to recompute.
+    makerInput?.dispatchEvent(new Event("input", { bubbles: true }));
   }
 
   return (
@@ -401,6 +435,18 @@ export default function RequestForm({ currentUser }: RequestFormProps) {
                     この行を削除
                   </button>
                 )}
+              </div>
+
+              <div className="mb-3">
+                <Field label="商品名検索">
+                  <ProductNameSearch
+                    className={inputCls}
+                    onSelect={(product) => handleProductSearchSelect(i, product)}
+                  />
+                </Field>
+                <p className="mt-1 text-xs text-slate-400">
+                  商品名の一部を入力すると候補が表示されます。選択すると下の項目が自動入力されます。
+                </p>
               </div>
 
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
