@@ -155,7 +155,6 @@ export default function SampleForm({ currentUser }: SampleFormProps) {
               type="date"
               name="requestDate"
               required
-              defaultValue={new Date().toISOString().slice(0, 10)}
               className={inputCls}
             />
           </Field>
@@ -178,7 +177,6 @@ export default function SampleForm({ currentUser }: SampleFormProps) {
           <Field label="社員番号">
             <input
               name="requesterEmployeeNumber"
-              defaultValue={currentUser?.employeeNumber || ""}
               onBlur={handleEmployeeLookupBlur}
               className={inputCls}
             />

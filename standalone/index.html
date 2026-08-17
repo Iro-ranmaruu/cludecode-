@@ -1467,12 +1467,12 @@
       '<form id="fuguai-form" novalidate>' +
       '<section class="panel"><h2>依頼者情報</h2>' +
         '<div class="grid cols-3" style="margin-top:16px;">' +
-          '<div>' + fieldLabel("依頼日", true) + '<input type="date" name="requestDate" required value="' + todayStr() + '" /></div>' +
+          '<div>' + fieldLabel("依頼日", true) + '<input type="date" name="requestDate" required /></div>' +
           '<div>' + fieldLabel("店所名", true) + '<input type="text" name="branchName" required value="' + esc(user.branchName || "") + '" /></div>' +
           '<div>' + fieldLabel("店所コード") + '<input type="text" name="branchCode" /></div>' +
           '<div>' + fieldLabel("所属長名") + '<input type="text" name="supervisorName" /></div>' +
           '<div>' + fieldLabel("担当者名", true) + '<input type="text" name="staffName" required value="' + esc(user.name || "") + '" /></div>' +
-          '<div>' + fieldLabel("社員番号") + '<input type="text" name="employeeNumber" value="' + esc(user.employeeNumber || "") + '" /></div>' +
+          '<div>' + fieldLabel("社員番号") + '<input type="text" name="employeeNumber" /></div>' +
         '</div></section>' +
       '<section class="panel"><h2>得意先情報</h2>' +
         '<div class="grid cols-4" style="margin-top:16px;">' +
@@ -1770,7 +1770,7 @@
       '<form id="sample-form" novalidate>' +
       '<section class="panel"><h2>申請情報</h2>' +
         '<div class="grid cols-3" style="margin-top:16px;">' +
-          '<div>' + fieldLabel("申請日", true) + '<input type="date" name="requestDate" required value="' + todayStr() + '" /></div>' +
+          '<div>' + fieldLabel("申請日", true) + '<input type="date" name="requestDate" required /></div>' +
           '<div class="grid" style="grid-column:span 2;">' +
             '<div style="grid-column:1/-1;">' + fieldLabel("申請先") +
               '<div class="radio-row">' + DESTINATION_OPTIONS.map(function (d, i) { return '<label><input type="radio" name="destination" value="' + d + '"' + (i === 0 ? " checked" : "") + ' /> ' + d + '</label>'; }).join("") + '</div>' +
@@ -1779,7 +1779,7 @@
         '</div></section>' +
       '<section class="panel"><h2>申請者・責任者</h2>' +
         '<div class="grid cols-3" style="margin-top:16px;">' +
-          '<div>' + fieldLabel("社員番号") + '<input type="text" name="requesterEmployeeNumber" value="' + esc(user.employeeNumber || "") + '" /></div>' +
+          '<div>' + fieldLabel("社員番号") + '<input type="text" name="requesterEmployeeNumber" /></div>' +
           '<div>' + fieldLabel("氏名", true) + '<input type="text" name="requesterName" required value="' + esc(user.name || "") + '" /></div>' +
           '<div>' + fieldLabel("部署") + '<input type="text" name="requesterDepartment" value="' + esc(user.branchName || "") + '" /></div>' +
           '<div>' + fieldLabel("責任者コード") + '<input type="text" name="responsibleCode" /></div>' +
