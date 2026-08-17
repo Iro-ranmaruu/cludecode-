@@ -272,7 +272,6 @@ export default function RequestForm({ currentUser }: RequestFormProps) {
               name="staffName"
               readOnly
               placeholder="自動入力"
-              defaultValue={currentUser?.name || ""}
               className={autoFilledCls}
             />
           </Field>

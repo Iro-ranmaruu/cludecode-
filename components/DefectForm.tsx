@@ -181,7 +181,6 @@ export default function DefectForm({ currentUser }: DefectFormProps) {
             <input
               name="staffName"
               required
-              defaultValue={currentUser?.name || ""}
               className={inputCls}
             />
           </Field>

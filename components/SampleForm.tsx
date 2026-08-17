@@ -185,7 +185,6 @@ export default function SampleForm({ currentUser }: SampleFormProps) {
             <input
               name="requesterName"
               required
-              defaultValue={currentUser?.name || ""}
               className={inputCls}
             />
           </Field>
