@@ -4,6 +4,9 @@ import { useId, useRef, useState } from "react";
 import { submitSampleRequestAction } from "@/lib/sample-actions";
 import { fetchProductInfo } from "@/lib/product-lookup-client";
 import { fetchEmployeeInfo } from "@/lib/employee-lookup-client";
+import { fetchCustomerInfo } from "@/lib/customer-lookup-client";
+import type { ProductSearchResult } from "@/lib/product-search-client";
+import ProductNameSearch from "@/components/ProductNameSearch";
 import { DESTINATION_OPTIONS, PURPOSE_OPTIONS } from "@/lib/sample-types";
 import {
   RequiredProgressBar,
@@ -90,6 +93,35 @@ export default function SampleForm({ currentUser }: SampleFormProps) {
       nameInput.value = result.productName;
       if (unitInput) unitInput.value = result.packingUnit;
     }
+  }
+
+  function handleProductSearchSelect(rowIndex: number, product: ProductSearchResult) {
+    const form = formRef.current;
+    if (!form) return;
+    const rows = form.querySelectorAll<HTMLElement>("[data-item-row]");
+    const row = rows[rowIndex];
+    if (!row) return;
+    const makerInput = row.querySelector<HTMLInputElement>('[data-field="makerCode"]');
+    const productInput = row.querySelector<HTMLInputElement>('[data-field="productCode"]');
+    const nameInput = row.querySelector<HTMLInputElement>('[data-field="productName"]');
+    const unitInput = row.querySelector<HTMLInputElement>('[data-field="packingUnit"]');
+
+    if (makerInput) makerInput.value = product.makerCode;
+    if (productInput) productInput.value = product.productCode;
+    if (nameInput) nameInput.value = product.productName;
+    if (unitInput) unitInput.value = product.packingUnit;
+    // Programmatic value changes don't fire native input/change events, so nudge the
+    // required-field progress bar (and any lingering validation-error styling) to recompute.
+    nameInput?.dispatchEvent(new Event("input", { bubbles: true }));
+  }
+
+  async function handleItemCustomerLookupBlur(e: React.FocusEvent<HTMLInputElement>) {
+    const row = e.currentTarget.closest("[data-item-row]");
+    if (!row) return;
+    const nameInput = row.querySelector<HTMLInputElement>('[data-field="customerName"]');
+    const result = await fetchCustomerInfo(e.currentTarget.value);
+    if (!result || !nameInput) return;
+    nameInput.value = result.customerName;
   }
 
   async function handleEmployeeLookupBlur(e: React.FocusEvent<HTMLInputElement>) {
@@ -235,6 +267,18 @@ export default function SampleForm({ currentUser }: SampleFormProps) {
                 )}
               </div>
 
+              <div className="mb-3">
+                <Field label="商品名検索">
+                  <ProductNameSearch
+                    className={inputCls}
+                    onSelect={(product) => handleProductSearchSelect(i, product)}
+                  />
+                </Field>
+                <p className="mt-1 text-xs text-slate-400">
+                  商品名の一部を入力すると候補が表示されます。選択すると下の項目が自動入力されます。
+                </p>
+              </div>
+
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
                 <Field label="サンプル管理番号">
                   <input name={`items[${i}][sampleManagementNo]`} className={inputCls} />
@@ -277,10 +321,19 @@ export default function SampleForm({ currentUser }: SampleFormProps) {
                   <input name={`items[${i}][requestUnit]`} className={inputCls} />
                 </Field>
                 <Field label="得意先コード">
-                  <input name={`items[${i}][customerCode]`} className={inputCls} />
+                  <input
+                    name={`items[${i}][customerCode]`}
+                    data-field="customerCode"
+                    onBlur={handleItemCustomerLookupBlur}
+                    className={inputCls}
+                  />
                 </Field>
                 <Field label="得意先名">
-                  <input name={`items[${i}][customerName]`} className={inputCls} />
+                  <input
+                    name={`items[${i}][customerName]`}
+                    data-field="customerName"
+                    className={inputCls}
+                  />
                 </Field>
                 <Field label="納入予定価格">
                   <input

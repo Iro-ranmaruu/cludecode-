@@ -575,6 +575,7 @@
       container.appendChild(newRow);
       wireProductLookup(newRow);
       wireProductNameSearch(newRow);
+      wireItemCustomerLookup(newRow);
       renumber();
     });
     container.addEventListener("click", function (e) {
@@ -589,6 +590,7 @@
     container.querySelectorAll("[data-item-row]").forEach(function (row) {
       wireProductLookup(row);
       wireProductNameSearch(row);
+      wireItemCustomerLookup(row);
     });
     renumber();
   }
@@ -821,6 +823,17 @@
       var customer = lookupCustomer(ccInput.value);
       if (!customer) return;
       facilityNameInput.value = customer.customerName;
+    });
+  }
+
+  function wireItemCustomerLookup(row) {
+    var codeInput = row.querySelector('[data-field="customerCode"]');
+    var nameInput = row.querySelector('[data-field="customerName"]');
+    if (!codeInput || !nameInput) return;
+    codeInput.addEventListener("blur", function () {
+      var customer = lookupCustomer(codeInput.value);
+      if (!customer) return;
+      nameInput.value = customer.customerName;
     });
   }
 
@@ -1420,6 +1433,12 @@
       '<div class="item-row" data-item-row>' +
         '<div class="item-row-head"><span class="title">商品 ' + (index + 1) + '</span>' +
           '<button type="button" class="link-btn danger" data-remove-item>この行を削除</button></div>' +
+        '<div style="position:relative; margin-bottom:12px;" data-product-search-wrap>' +
+          fieldLabel("商品名検索") +
+          '<input type="text" data-product-name-search placeholder="商品名で検索（部分一致）" autocomplete="off" />' +
+          '<div data-product-search-results class="product-search-results"></div>' +
+          '<p class="muted-xs" style="margin-top:4px;">商品名の一部を入力すると候補が表示されます。選択すると下の項目が自動入力されます。</p>' +
+        '</div>' +
         '<div class="grid cols-4">' +
           '<div>' + fieldLabel("メーカーコード", true) + '<input type="text" data-field="makerCode" required /></div>' +
           '<div>' + fieldLabel("商品コード", true) + '<input type="text" data-field="productCode" required /></div>' +
@@ -1716,6 +1735,12 @@
       '<div class="item-row" data-item-row>' +
         '<div class="item-row-head"><span class="title">明細 ' + (index + 1) + '</span>' +
           '<button type="button" class="link-btn danger" data-remove-item>この行を削除</button></div>' +
+        '<div style="position:relative; margin-bottom:12px;" data-product-search-wrap>' +
+          fieldLabel("商品名検索") +
+          '<input type="text" data-product-name-search placeholder="商品名で検索（部分一致）" autocomplete="off" />' +
+          '<div data-product-search-results class="product-search-results"></div>' +
+          '<p class="muted-xs" style="margin-top:4px;">商品名の一部を入力すると候補が表示されます。選択すると下の項目が自動入力されます。</p>' +
+        '</div>' +
         '<div class="grid cols-4">' +
           '<div>' + fieldLabel("サンプル管理番号") + '<input type="text" data-field="sampleManagementNo" /></div>' +
           '<div>' + fieldLabel("メーカーコード", true) + '<input type="text" data-field="makerCode" required /></div>' +
