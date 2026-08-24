@@ -19,6 +19,11 @@ from core.ffmpeg_utils import check_ffmpeg_available  # noqa: E402
 st.set_page_config(page_title="動画マニュアル自動生成", page_icon="🎬", layout="wide")
 
 DEFAULT_OUTPUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "output")
+# 動画の置き場所（社内共有フォルダ）。環境変数 VIDEO_SOURCE_FOLDER で上書き可能。
+DEFAULT_SOURCE_FOLDER = os.environ.get(
+    "VIDEO_SOURCE_FOLDER",
+    r"\\store\営業企画\企画共有フォルダ\WiSM製品企画販売\temp\飯田保管用\どうがおきば",
+)
 
 st.title("🎬 動画 → 分割 & 挿画解析 → マニュアル自動生成")
 st.caption(
@@ -55,7 +60,12 @@ st.divider()
 with st.form("process_form"):
     col1, col2 = st.columns(2)
     with col1:
-        folder = st.text_input("動画が入っているフォルダのパス", placeholder="/path/to/videos")
+        folder = st.text_input(
+            "動画が入っているフォルダのパス",
+            value=DEFAULT_SOURCE_FOLDER,
+            placeholder=r"\\store\...\どうがおきば",
+            help="Windowsの共有フォルダ(UNCパス)や、マッピング済みのドライブレター（例: Z:\\...）も指定できます。",
+        )
         output_dir = st.text_input("出力先フォルダ", value=DEFAULT_OUTPUT)
         recursive = st.checkbox("サブフォルダも対象にする", value=False)
         max_size_mb = st.number_input(
