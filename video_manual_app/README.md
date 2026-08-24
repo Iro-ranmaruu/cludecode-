@@ -4,6 +4,21 @@
 フレーム（挿画・画面の切り替わり）を抽出、**OCR でテキストを解析**して、時系列の
 **HTML マニュアル**を自動生成するローカル Streamlit アプリです。
 
+## クイックスタート（Windows・一番簡単な方法）
+
+1. 下記リンクを開き、緑色の「Code」ボタン →「Download ZIP」でダウンロードする
+   （GitHubにログインが必要な場合はログインしてください）
+   https://github.com/Iro-ranmaruu/cludecode-/tree/claude/video-split-analysis-manual-app-09qhu3
+2. ダウンロードした ZIP ファイルを右クリック →「すべて展開」で、デスクトップなど
+   分かりやすい場所に展開する
+3. 展開したフォルダの中の `video_manual_app` フォルダを開く
+4. その中の **`start_windows.bat`** をダブルクリックする
+
+初回は Python・ffmpeg・Tesseract のインストールが必要な場合、画面にインストール先の
+リンクが表示されるので、案内に従ってインストールしてから、もう一度
+`start_windows.bat` をダブルクリックしてください。すべて揃っていれば、自動的に
+ブラウザでアプリが開きます。
+
 ## 仕組み
 
 1. **分割 (splitter)**: 動画がすでに 30MB 以下ならそのまま利用。超える場合は
