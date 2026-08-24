@@ -14,10 +14,18 @@
 3. 展開したフォルダの中の `video_manual_app` フォルダを開く
 4. その中の **`start_windows.bat`** をダブルクリックする
 
-初回は Python・ffmpeg・Tesseract のインストールが必要な場合、画面にインストール先の
-リンクが表示されるので、案内に従ってインストールしてから、もう一度
+初回は Python・ffmpeg・Tesseract のインストールが必要な場合、画面（英語表示です）に
+インストール先のリンクが表示されるので、案内に従ってインストールしてから、もう一度
 `start_windows.bat` をダブルクリックしてください。すべて揃っていれば、自動的に
 ブラウザでアプリが開きます。
+
+> **Python のバージョンについて**: python.org の「Download Python」ボタンは
+> その時点の最新版（2026年時点では 3.14 系など）に案内されますが、streamlit などの
+> ライブラリが最新版にまだ対応していないことがあります。**Python 3.12 系**を
+> インストールしてください: https://www.python.org/downloads/release/python-3120/
+> （すでに新しいバージョンを入れてしまい `start_windows.bat` が
+> `No module named streamlit` などで失敗する場合も、3.12 を追加インストールすれば
+> 解決します。複数バージョンが共存していても問題ありません。）
 
 ## 仕組み
 
