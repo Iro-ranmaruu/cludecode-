@@ -19,10 +19,10 @@ from core.ffmpeg_utils import check_ffmpeg_available  # noqa: E402
 st.set_page_config(page_title="動画マニュアル自動生成", page_icon="🎬", layout="wide")
 
 DEFAULT_OUTPUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "output")
-# 動画の置き場所（社内共有フォルダ）。環境変数 VIDEO_SOURCE_FOLDER で上書き可能。
+# 動画の置き場所（ローカルフォルダ）。環境変数 VIDEO_SOURCE_FOLDER で上書き可能。
 DEFAULT_SOURCE_FOLDER = os.environ.get(
     "VIDEO_SOURCE_FOLDER",
-    r"\\store\営業企画\企画共有フォルダ\WiSM製品企画販売\temp\飯田保管用\どうがおきば",
+    r"C:\Users\4908\Desktop\どうがおきば",
 )
 
 st.title("🎬 動画 → 分割 & 挿画解析 → マニュアル自動生成")
