@@ -111,6 +111,25 @@ section.grp h2 small { font-family: var(--font-body); font-weight: 400; font-siz
 .cmp tfoot td { font-weight: 700; font-variant-numeric: tabular-nums; }
 .legend { font-size: 12px; color: var(--muted); display: flex; gap: 12px; flex-wrap: wrap; }
 .status { font-size: 12px; color: var(--muted); }
+
+.cam { display: inline-flex; align-items: center; gap: 6px; border: 1px dashed var(--line); background: transparent; color: var(--muted); border-radius: 8px; padding: 4px 10px; font-size: 12.5px; cursor: pointer; }
+.cam svg { width: 16px; height: 16px; }
+.thumbs { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.thumb { width: 64px; height: 64px; border-radius: 8px; border: 1px solid var(--line); padding: 0; overflow: hidden; cursor: pointer; background: var(--ng-soft); flex: none; }
+.thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.thumb.busy { display: grid; place-items: center; font-size: 11px; color: var(--muted); cursor: default; }
+.gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 8px; }
+.gallery figure { margin: 0; display: grid; gap: 4px; min-width: 0; }
+.gallery .thumb { width: 100%; height: auto; aspect-ratio: 1; max-width: 100%; }
+.gallery figcaption { font-size: 11.5px; color: var(--muted); line-height: 1.35; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.gallery figcaption b { color: var(--ink); font-weight: 500; }
+
+.lb { position: fixed; inset: 0; z-index: 20; background: color-mix(in srgb, #000 82%, transparent); display: grid; grid-template-rows: 1fr auto; padding: calc(env(safe-area-inset-top, 0px) + 12px) max(12px, env(safe-area-inset-right, 0px)) calc(env(safe-area-inset-bottom, 0px) + 12px) max(12px, env(safe-area-inset-left, 0px)); gap: 10px; }
+.lb .pic { min-height: 0; display: grid; place-items: center; }
+.lb .pic img { max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 6px; }
+.lb .panel { background: var(--surface); border-radius: 12px; padding: 12px; display: grid; gap: 8px; max-width: 680px; width: 100%; margin: 0 auto; }
+.lb select, .lb input { border: 1px solid var(--line); background: var(--bg); border-radius: 8px; padding: 7px 10px; font-size: 14px; width: 100%; min-width: 0; color: var(--ink); }
+.lb .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; justify-content: space-between; }
 </style>
 
 <header class="bar">
@@ -131,6 +150,8 @@ section.grp h2 small { font-family: var(--font-body); font-weight: 400; font-siz
     <p class="note">読み込み中…</p>
   </div>
 </main>
+<input type="file" id="photoInput" accept="image/*" multiple hidden>
+<div class="lb" id="lb" hidden role="dialog" aria-modal="true" aria-label="写真"></div>
 
 <script>
 const GROUPS = [
@@ -161,7 +182,9 @@ const ITEMS = GROUPS.flatMap(g => g.items);
 const MARKS = [["ok", "◯", "良い"], ["warn", "△", "気になる"], ["ng", "✕", "ダメ"]];
 const MIC = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>';
 
-const state = { props: [], cur: null, view: "check", loaded: false, store: "none", dict: null, listenFor: null, delArm: false };
+const CAM = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>';
+const ITEM_NAME = Object.fromEntries(ITEMS.map(([k, t]) => [k, t]));
+const state = { props: [], cur: null, view: "check", loaded: false, store: "none", dict: null, listenFor: null, delArm: false, assets: null, photoFor: "", uploading: {}, lb: null, lbDel: false };
 const app = document.getElementById("app");
 const tabsEl = document.getElementById("tabs");
 
@@ -208,7 +231,7 @@ async function boot() {
 function finishLoad() {
   state.loaded = true;
   state.props.sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
-  state.props.forEach(p => { p.checks ||= {}; p.notes ||= {}; });
+  state.props.forEach(p => { p.checks ||= {}; p.notes ||= {}; p.photos ||= []; });
   state.cur = state.props[state.props.length - 1]?.id || null;
   render();
 }
@@ -237,6 +260,86 @@ function finishLoad() {
   });
   render();
 })();
+/* ---------- photos (artifact asset store; ids kept on each property) ---------- */
+(async () => {
+  if (!window.claude?.use) return;
+  const a = await claude.use("assets");
+  if (!a) return;
+  state.assets = a; render();
+})();
+const photoInput = document.getElementById("photoInput");
+async function shrink(file) {
+  try {
+    const bmp = await createImageBitmap(file);
+    const s = Math.min(1, 1800 / Math.max(bmp.width, bmp.height));
+    const c = document.createElement("canvas");
+    c.width = Math.round(bmp.width * s); c.height = Math.round(bmp.height * s);
+    c.getContext("2d").drawImage(bmp, 0, 0, c.width, c.height);
+    const b = await new Promise(r => c.toBlob(r, "image/jpeg", 0.85));
+    return b || file;
+  } catch { return file; }
+}
+photoInput.addEventListener("change", async () => {
+  const p = cur(), files = [...photoInput.files], item = state.photoFor;
+  photoInput.value = "";
+  if (!p || !files.length || !state.assets) return;
+  const key = p.id + "|" + item;
+  state.uploading[key] = (state.uploading[key] || 0) + files.length; render();
+  let failed = 0;
+  for (const f of files) {
+    try {
+      const blob = await shrink(f);
+      const r = await state.assets.upload(blob);
+      p.photos.push({ id: r.id, item, cap: "", at: Date.now() });
+      persist(p);
+    } catch (e) { failed++; if (e?.code === "quota_or_state") { setStatus("保存容量がいっぱいです。不要な写真を削除してください"); } }
+    state.uploading[key]--; render();
+  }
+  if (failed) setStatus(failed + "枚を保存できませんでした");
+  else setStatus(files.length + "枚の写真を追加しました");
+});
+function pickPhotos(item) { state.photoFor = item; photoInput.click(); }
+const src = id => "/_blob/" + id;
+function thumbs(p, item) {
+  const list = p.photos.filter(x => x.item === item);
+  const busy = state.uploading[p.id + "|" + item] || 0;
+  return list.map(x => `<button type="button" class="thumb" data-ph="${esc(x.id)}" aria-label="写真を開く"><img src="${src(x.id)}" alt="${esc(x.cap || ITEM_NAME[x.item] || "物件の写真")}" loading="lazy"></button>`).join("")
+    + (busy ? `<span class="thumb busy">保存中 ${busy}</span>` : "");
+}
+function openLb(id) { state.lb = id; state.lbDel = false; renderLb(); }
+function renderLb() {
+  const lb = document.getElementById("lb"), p = cur(), ph = p?.photos.find(x => x.id === state.lb);
+  if (!ph) { lb.hidden = true; lb.innerHTML = ""; state.lb = null; return; }
+  lb.hidden = false;
+  lb.innerHTML = `<div class="pic"><img src="${src(ph.id)}" alt="${esc(ph.cap || "物件の写真")}"></div>
+    <div class="panel">
+      <label class="f">どの項目の写真？<select id="lb-item"><option value="">（項目なし・その他）</option>${GROUPS.map(g => `<optgroup label="${g.name}">${g.items.map(([k, t]) => `<option value="${k}"${ph.item === k ? " selected" : ""}>${t}</option>`).join("")}</optgroup>`).join("")}</select></label>
+      <label class="f">ひとこと<input id="lb-cap" value="${esc(ph.cap)}" placeholder="例：北側は3階建てのアパート"></label>
+      <div class="row">${state.lbDel
+        ? `<span>この写真を削除しますか？</span><span style="display:flex;gap:8px"><button type="button" class="btn del" id="lb-delYes">削除する</button><button type="button" class="btn" id="lb-delNo">やめる</button></span>`
+        : `<button type="button" class="btn del" id="lb-delArm">削除</button><button type="button" class="btn primary" id="lb-close">閉じる</button>`}</div>
+    </div>`;
+  if (!state.lbDel) document.getElementById("lb-close").focus();
+}
+document.getElementById("lb").addEventListener("click", e => {
+  const p = cur(), ph = p?.photos.find(x => x.id === state.lb);
+  const t = e.target;
+  if (t.id === "lb" || t.id === "lb-close" || t.closest(".pic")) { state.lb = null; renderLb(); render(); return; }
+  if (t.id === "lb-delArm") { state.lbDel = true; return renderLb(); }
+  if (t.id === "lb-delNo") { state.lbDel = false; return renderLb(); }
+  if (t.id === "lb-delYes" && ph) {
+    p.photos = p.photos.filter(x => x !== ph); persist(p);
+    state.assets?.delete(ph.id).catch(() => {});
+    state.lb = null; renderLb(); render(); setStatus("写真を削除しました");
+  }
+});
+document.getElementById("lb").addEventListener("input", e => {
+  const p = cur(), ph = p?.photos.find(x => x.id === state.lb); if (!ph) return;
+  if (e.target.id === "lb-cap") { ph.cap = e.target.value; persist(p); }
+  if (e.target.id === "lb-item") { ph.item = e.target.value; persist(p); }
+});
+document.addEventListener("keydown", e => { if (e.key === "Escape" && state.lb) { state.lb = null; renderLb(); render(); } });
+
 function micClick(id) {
   const d = state.dict; if (!d) return;
   if (d.active() && state.listenFor === id) { d.stop(); return; }
@@ -306,13 +409,24 @@ function render() {
       h += `<div class="item" data-v="${v}"><div class="ihead"><div class="itext"><strong>${t}</strong>${s ? `<span>${s}</span>` : ""}</div>
         <div class="marks" role="group" aria-label="${t}">${MARKS.map(([m, sym, name]) =>
           `<button type="button" class="mk" data-k="${k}" data-m="${m}" aria-pressed="${v === m}" aria-label="${name}" title="${name}">${sym}</button>`).join("")}</div></div>
-        ${memoBox("n-" + k, p.notes[k], "メモ（聞いた答え・気づいたこと）")}</div>`;
+        ${memoBox("n-" + k, p.notes[k], "メモ（聞いた答え・気づいたこと）")}
+        ${state.assets || p.photos.some(x => x.item === k) ? `<div class="thumbs">${thumbs(p, k)}${state.assets ? `<button type="button" class="cam" data-cam="${k}">${CAM}写真</button>` : ""}</div>` : ""}</div>`;
     });
     h += `</section>`;
   });
-  h += `<section class="grp"><h2>全体メモ</h2>${memoBox("n-_all", p.memo, "日当たり、収納、契約条件など自由に")}</section>
+  const busyAll = Object.entries(state.uploading).filter(([k]) => k.startsWith(p.id + "|")).reduce((a, [, n]) => a + n, 0);
+  h += `<section class="grp"><h2>この物件の写真<small>${p.photos.length}枚${busyAll ? `・保存中 ${busyAll}` : ""}</small></h2>
+    ${state.assets
+      ? `<div><button type="button" class="btn" data-cam="">${CAM.replace('aria-hidden', 'style="width:16px;height:16px;vertical-align:-3px" aria-hidden')} 写真を追加</button></div>`
+      : `<p class="note">この画面では写真を追加できません（ページの編集権限がある人のみ追加できます）。</p>`}
+    ${p.photos.length ? `<div class="gallery">${[...p.photos].sort((a, b) => (a.item ? ITEMS.findIndex(i => i[0] === a.item) : 99) - (b.item ? ITEMS.findIndex(i => i[0] === b.item) : 99) || a.at - b.at).map(x =>
+      `<figure><button type="button" class="thumb" data-ph="${esc(x.id)}" aria-label="写真を開く"><img src="${src(x.id)}" alt="${esc(x.cap || ITEM_NAME[x.item] || "物件の写真")}" loading="lazy"></button>
+       <figcaption>${x.item ? `<b>${esc(ITEM_NAME[x.item])}</b>` : "その他"}${x.cap ? "：" + esc(x.cap) : ""}</figcaption></figure>`).join("")}</div>`
+      : `<p class="note">写真はここにまとまります。各項目の「写真」ボタンから撮ると、その項目に紐づきます。</p>`}
+  </section>
+  <section class="grp"><h2>全体メモ</h2>${memoBox("n-_all", p.memo, "日当たり、収納、契約条件など自由に")}</section>
     <div class="danger">${state.delArm
-      ? `<span>「${esc(label(p, state.props.indexOf(p)))}」を削除しますか？</span><button type="button" class="btn del" id="delYes">削除する</button><button type="button" class="btn" id="delNo">やめる</button>`
+      ? `<span>「${esc(label(p, state.props.indexOf(p)))}」を${p.photos.length ? "写真" + p.photos.length + "枚ごと" : ""}削除しますか？</span><button type="button" class="btn del" id="delYes">削除する</button><button type="button" class="btn" id="delNo">やめる</button>`
       : `<button type="button" class="btn del" id="delArm">この物件を削除</button>`}</div>`;
   app.innerHTML = h;
 }
@@ -327,6 +441,7 @@ function renderCmp(storeNote) {
     g.items.forEach(([k, t]) => { h += `<tr><td>${t}</td>${ps.map(p => `<td>${sym(p.checks[k])}</td>`).join("")}</tr>`; });
   });
   h += `</tbody><tfoot><tr><td>◯ / △ / ✕</td>${ps.map(p => { const c = tally(p); return `<td>${c.ok} / ${c.warn} / ${c.ng}</td>`; }).join("")}</tr>
+    <tr><td>写真</td>${ps.map(p => `<td>${p.photos.length}枚</td>`).join("")}</tr>
     <tr><td>家賃</td>${ps.map(p => `<td>${esc(p.rent) || "―"}</td>`).join("")}</tr></tfoot></table></div>
     <p class="note">物件名をタップするとチェック画面に戻ります。${storeNote}</p>`;
   app.innerHTML = h;
@@ -334,7 +449,7 @@ function renderCmp(storeNote) {
 
 /* ---------- events ---------- */
 function addProp() {
-  const p = { id: "p" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), name: "", rent: "", date: "", addr: "", memo: "", checks: {}, notes: {}, createdAt: Date.now() };
+  const p = { id: "p" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), name: "", rent: "", date: "", addr: "", memo: "", checks: {}, notes: {}, photos: [], createdAt: Date.now() };
   state.props.push(p); state.cur = p.id; state.view = "check"; state.delArm = false;
   persist(p); render(); window.scrollTo(0, 0);
   setTimeout(() => document.getElementById("f-name")?.focus(), 0);
@@ -352,6 +467,8 @@ app.addEventListener("click", e => {
   if (t.id === "addFirst") return addProp();
   const p = cur();
   if (t.classList.contains("mic")) return micClick(t.dataset.for);
+  if (t.dataset.cam !== undefined) return pickPhotos(t.dataset.cam);
+  if (t.dataset.ph) return openLb(t.dataset.ph);
   if (t.classList.contains("mk") && p) {
     const k = t.dataset.k, m = t.dataset.m;
     p.checks[k] = p.checks[k] === m ? "" : m;
@@ -364,6 +481,7 @@ app.addEventListener("click", e => {
   if (t.id === "delNo") { state.delArm = false; return render(); }
   if (t.id === "delYes" && p) {
     state.props = state.props.filter(x => x !== p); removeStore(p);
+    if (state.assets) p.photos.forEach(x => state.assets.delete(x.id).catch(() => {}));
     state.cur = state.props[state.props.length - 1]?.id || null; state.delArm = false; render();
   }
 });
