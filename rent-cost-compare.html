@@ -1,0 +1,378 @@
+<title>2年住んだらいくら？</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Zen+Maru+Gothic:wght@700&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* Layout: phone-first single column. Sticky property switcher, a live 2-year total card on top, inputs grouped by when you pay. */
+:root {
+  --bg: #f5f6f8;
+  --surface: #ffffff;
+  --ink: #1d2433;
+  --muted: #5d6679;
+  --line: #dde1e8;
+  --stamp: #d4362c;
+  --stamp-soft: #fbe9e7;
+  --good: #1f7a55;
+  --good-soft: #e3f3ec;
+  --focus: #2f6fd6;
+  --font-body: "Zen Kaku Gothic New", "Hiragino Sans", "Noto Sans JP", system-ui, sans-serif;
+  --font-head: "Zen Maru Gothic", "Hiragino Maru Gothic ProN", "Zen Kaku Gothic New", system-ui, sans-serif;
+  --font-num: "IBM Plex Mono", ui-monospace, "SFMono-Regular", monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #12151c; --surface: #1b1f29; --ink: #e8ebf2; --muted: #9aa3b5; --line: #2c3240;
+  --stamp: #ff6b5e; --stamp-soft: #3a1f1d; --good: #5fd3a0; --good-soft: #17322a; --focus: #7aa7ff; color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #12151c; --surface: #1b1f29; --ink: #e8ebf2; --muted: #9aa3b5; --line: #2c3240;
+  --stamp: #ff6b5e; --stamp-soft: #3a1f1d; --good: #5fd3a0; --good-soft: #17322a; --focus: #7aa7ff; color-scheme: dark; }
+
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 15px; line-height: 1.6; }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--surface); }
+button, input { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.num { font-family: var(--font-num); font-variant-numeric: tabular-nums; }
+
+.bar { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--surface); border-bottom: 1px solid var(--line); }
+.wrap { max-width: 680px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.bar .wrap { padding-block: 10px; display: grid; gap: 8px; }
+.top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+h1 { font-family: var(--font-head); font-size: 19px; margin: 0; display: flex; align-items: baseline; gap: 6px; }
+h1 .yen { color: var(--stamp); }
+.views { display: flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; flex: none; }
+.views button { border: 0; background: transparent; padding: 4px 12px; font-size: 13px; cursor: pointer; color: var(--muted); }
+.views button[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
+.tabs { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; }
+.tabs::-webkit-scrollbar { display: none; }
+.tab { flex: none; border: 1px solid var(--line); background: var(--bg); border-radius: 999px; padding: 4px 12px; font-size: 13px; cursor: pointer; white-space: nowrap; max-width: 180px; overflow: hidden; text-overflow: ellipsis; }
+.tab[aria-selected="true"] { background: var(--stamp); border-color: var(--stamp); color: #fff; font-weight: 700; }
+.tab.add { border-style: dashed; color: var(--muted); }
+
+main .wrap { padding-block: 16px 64px; display: grid; gap: 18px; }
+.note { font-size: 12px; color: var(--muted); margin: 0; }
+
+.sum { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 14px; display: grid; gap: 12px; }
+.sum .name { border: 1px solid var(--line); background: var(--bg); border-radius: 8px; padding: 8px 10px; font-size: 15px; width: 100%; font-weight: 700; }
+.big { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.big div { display: grid; gap: 0; min-width: 0; }
+.big span { font-size: 11.5px; color: var(--muted); }
+.big b { font-family: var(--font-num); font-size: 17px; font-weight: 500; overflow-wrap: anywhere; }
+.big .main b { font-size: 22px; color: var(--stamp); }
+.break { display: grid; gap: 2px; font-size: 13px; border-top: 1px dashed var(--line); padding-top: 10px; }
+.break div { display: flex; justify-content: space-between; gap: 12px; }
+.break span:first-child { color: var(--muted); }
+.break .minus span:last-child { color: var(--good); }
+
+section.grp { display: grid; gap: 8px; }
+section.grp h2 { font-family: var(--font-head); font-size: 15px; margin: 0; display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+section.grp h2 small { font-family: var(--font-num); font-weight: 500; font-size: 13px; color: var(--muted); }
+.box { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 4px 14px; display: grid; }
+.row { display: grid; grid-template-columns: minmax(0, 1fr) 140px; gap: 4px 12px; align-items: center; padding-block: 10px; border-bottom: 1px solid var(--line); }
+.row:last-child { border-bottom: 0; }
+.row label { font-size: 14px; min-width: 0; }
+.row label small { display: block; font-size: 11.5px; color: var(--muted); line-height: 1.4; }
+.row input[type="text"] { border: 1px solid var(--line); background: var(--bg); border-radius: 8px; padding: 7px 10px; width: 100%; min-width: 0; text-align: right; font-family: var(--font-num); font-size: 15px; }
+.row .parsed { grid-column: 2; text-align: right; font-size: 11.5px; color: var(--muted); font-family: var(--font-num); min-height: 0; }
+.chips { grid-column: 1 / -1; display: flex; gap: 6px; flex-wrap: wrap; }
+.chip { border: 1px solid var(--line); background: var(--bg); border-radius: 999px; padding: 1px 10px; font-size: 12px; cursor: pointer; color: var(--muted); }
+.chip:hover { color: var(--ink); border-color: var(--muted); }
+.toggle { display: flex; align-items: center; gap: 8px; font-size: 13px; grid-column: 1 / -1; }
+.toggle input { width: 18px; height: 18px; accent-color: var(--stamp); }
+
+.btn { border: 1px solid var(--line); background: var(--surface); border-radius: 8px; padding: 6px 14px; cursor: pointer; }
+.btn.primary { background: var(--stamp); border-color: var(--stamp); color: #fff; font-weight: 700; }
+.btn.del { color: var(--stamp); }
+.danger { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; font-size: 13px; }
+
+.empty { text-align: center; padding: 40px 16px; display: grid; gap: 12px; justify-items: center; }
+
+.rank { display: grid; gap: 8px; }
+.rcard { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 2px 12px; align-items: center; cursor: pointer; text-align: left; width: 100%; }
+.rcard.best { border-color: var(--good); background: var(--good-soft); }
+.rcard .pos { font-family: var(--font-head); font-size: 20px; color: var(--muted); grid-row: span 2; }
+.rcard.best .pos { color: var(--good); }
+.rcard .nm { font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rcard .tot { font-family: var(--font-num); font-size: 18px; text-align: right; }
+.rcard .sub { font-size: 12px; color: var(--muted); }
+.rcard .diff { font-family: var(--font-num); font-size: 12px; text-align: right; color: var(--stamp); }
+.rcard.best .diff { color: var(--good); }
+.tbl { overflow-x: auto; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; }
+.tbl table { border-collapse: collapse; font-size: 13px; min-width: 100%; }
+.tbl th, .tbl td { border-bottom: 1px solid var(--line); padding: 7px 10px; text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.tbl td { font-family: var(--font-num); }
+.tbl th:first-child, .tbl td:first-child { text-align: left; position: sticky; left: 0; background: var(--surface); font-family: var(--font-body); white-space: normal; min-width: 130px; }
+.tbl tr.sec td { background: var(--bg); font-weight: 700; }
+.tbl tr.tot td { font-weight: 700; color: var(--stamp); }
+.tbl td.low { color: var(--good); font-weight: 700; }
+.status { font-size: 12px; color: var(--muted); }
+
+@media (max-width: 420px) { .row { grid-template-columns: minmax(0, 1fr) 118px; } .big .main b { font-size: 19px; } .big b { font-size: 15px; } }
+</style>
+
+<header class="bar">
+  <div class="wrap">
+    <div class="top">
+      <h1><span class="yen">¥</span>2年住んだらいくら？</h1>
+      <div class="views" role="group" aria-label="表示切替">
+        <button type="button" id="v-edit" aria-pressed="true">入力</button>
+        <button type="button" id="v-cmp" aria-pressed="false">比較</button>
+      </div>
+    </div>
+    <div class="tabs" id="tabs" role="tablist" aria-label="物件"></div>
+  </div>
+</header>
+<main><div class="wrap" id="app"><p class="note">読み込み中…</p></div></main>
+
+<script>
+const MONTHS = 24;
+/* chips: [label, (p) => yen] using the parsed rent */
+const R = p => n(p.rent), RK = p => n(p.rent) + n(p.kanri);
+const GROUPS = [
+  { id: "monthly", name: "毎月かかる", rows: [
+    { k: "rent", label: "家賃" },
+    { k: "kanri", label: "管理費・共益費" },
+    { k: "parking", label: "駐車場・駐輪場" },
+    { k: "monthlyOther", label: "その他の月額", hint: "町内会費・ネット代・24時間サポートなど" },
+  ]},
+  { id: "init", name: "入居時にかかる", rows: [
+    { k: "shiki", label: "敷金（保証金）", hint: "退去時に一部戻るお金", chips: [["家賃×1", p => R(p)], ["×2", p => R(p) * 2]] },
+    { k: "rei", label: "礼金", chips: [["家賃×1", p => R(p)], ["×2", p => R(p) * 2]] },
+    { k: "chukai", label: "仲介手数料", chips: [["家賃×0.5＋税", p => Math.round(R(p) * 0.55)], ["家賃×1＋税", p => Math.round(R(p) * 1.1)]] },
+    { k: "hosho", label: "保証会社（初回）", chips: [["総賃料×0.5", p => Math.round(RK(p) * 0.5)], ["×1", p => RK(p)]] },
+    { k: "kasai", label: "火災保険", hint: "2年契約が多い", chips: [["1.5万", () => 15000], ["2万", () => 20000]] },
+    { k: "kagi", label: "鍵交換" },
+    { k: "initOther", label: "その他の初期費用", hint: "消毒・消臭、サポート費、入居時クリーニングなど" },
+  ]},
+  { id: "during", name: "2年の間にかかる", rows: [
+    { k: "free", label: "フリーレント", hint: "家賃無料の月数", unit: "months" },
+    { k: "hoshoRenew", label: "保証会社の年間更新料", hint: "2年目に1回払う分", chips: [["1万", () => 10000]] },
+    { k: "renew", label: "更新料", hint: "2年を超えて住む場合だけ", toggle: "renewOn", chips: [["家賃×1", p => R(p)]] },
+    { k: "duringOther", label: "その他", hint: "火災保険の更新など" },
+  ]},
+  { id: "exit", name: "退去時にかかる", rows: [
+    { k: "shikibiki", label: "敷引き・解約引き", hint: "敷金から必ず引かれる額" },
+    { k: "cleaning", label: "退去時クリーニング代", hint: "契約書の特約を確認" },
+  ]},
+];
+const ROWS = GROUPS.flatMap(g => g.rows);
+
+/* "6.8万" "68,000" "６８０００" → yen */
+function n(v) {
+  if (v == null) return 0;
+  let s = String(v).normalize("NFKC").replace(/[,，\s円¥]/g, "");
+  if (!s) return 0;
+  let mul = 1;
+  if (/万/.test(s)) { const [a, b] = s.split("万"); return Math.round((parseFloat(a) || 0) * 10000 + (parseFloat(b) || 0)); }
+  if (/千/.test(s)) { s = s.replace("千", ""); mul = 1000; }
+  const x = parseFloat(s);
+  return isFinite(x) ? Math.round(x * mul) : 0;
+}
+const yen = x => "¥" + Math.round(x).toLocaleString("ja-JP");
+const man = x => (x / 10000).toLocaleString("ja-JP", { maximumFractionDigits: 1 }) + "万";
+
+function calc(p) {
+  const monthly = n(p.rent) + n(p.kanri) + n(p.parking) + n(p.monthlyOther);
+  const free = Math.min(MONTHS, Math.max(0, parseFloat(String(p.free || 0).normalize("NFKC")) || 0));
+  const initFees = ["shiki", "rei", "chukai", "hosho", "kasai", "kagi", "initOther"].reduce((a, k) => a + n(p[k]), 0);
+  const rentTotal = monthly * (MONTHS - free);
+  const renew = p.renewOn ? n(p.renew) : 0;
+  const during = n(p.hoshoRenew) + renew + n(p.duringOther);
+  const exitCost = n(p.shikibiki) + n(p.cleaning);
+  const shiki = n(p.shiki);
+  const back = Math.max(0, shiki - exitCost);
+  const exitExtra = Math.max(0, exitCost - shiki);
+  const total = initFees - shiki + rentTotal + during + exitCost;
+  const moveIn = initFees + (free > 0 ? 0 : monthly);
+  return { monthly, free, initFees, rentTotal, during, exitCost, shiki, back, exitExtra, total, moveIn, perMonth: total / MONTHS };
+}
+
+const state = { props: [], cur: null, view: "edit", loaded: false, store: "none", delArm: false };
+const app = document.getElementById("app"), tabsEl = document.getElementById("tabs");
+
+/* ---------- storage ---------- */
+let db = null, uid = null;
+const LS = "rent-cost-compare-v1";
+function lsLoad() { try { return JSON.parse(localStorage.getItem(LS) || "[]"); } catch { return []; } }
+function lsSave() { try { localStorage.setItem(LS, JSON.stringify(state.props)); } catch {} }
+const timers = {};
+let statusTimer;
+function setStatus(t) { const s = document.getElementById("status"); if (s) { s.textContent = t; clearTimeout(statusTimer); statusTimer = setTimeout(() => { s.textContent = ""; }, 2500); } }
+function persist(p) {
+  p.updatedAt = Date.now();
+  clearTimeout(timers[p.id]);
+  timers[p.id] = setTimeout(async () => {
+    if (state.store === "db") {
+      try { await db.collection("data/users/" + uid).doc(p.id).set(JSON.parse(JSON.stringify(p))); setStatus("保存しました"); }
+      catch { setStatus("保存できませんでした。通信を確認してください"); }
+    } else { lsSave(); setStatus("この端末に保存しました"); }
+  }, 600);
+}
+async function boot() {
+  const fallback = () => { state.store = "local"; state.props = lsLoad(); finish(); };
+  const t = setTimeout(() => { if (!state.loaded) fallback(); }, 10000);
+  try {
+    if (!window.claude?.use) { clearTimeout(t); return fallback(); }
+    const [d, u] = await Promise.all([claude.use("db"), claude.use("user")]);
+    uid = u ? await u.id() : null;
+    if (!d || !uid) { clearTimeout(t); return fallback(); }
+    db = d;
+    const snap = await db.collection("data/users/" + uid).get();
+    if (state.loaded) return;
+    clearTimeout(t); state.store = "db";
+    state.props = snap.docs.map(s => ({ ...s.data(), id: s.id }));
+    finish();
+  } catch { clearTimeout(t); if (!state.loaded) fallback(); }
+}
+function finish() {
+  state.loaded = true;
+  state.props.sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
+  state.cur = state.props[state.props.length - 1]?.id || null;
+  render();
+}
+
+/* ---------- render ---------- */
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const cur = () => state.props.find(p => p.id === state.cur);
+const label = (p, i) => p.name?.trim() || "物件 " + (i + 1);
+
+function renderTabs() {
+  tabsEl.innerHTML = state.props.map((p, i) => `<button type="button" class="tab" role="tab" aria-selected="${p.id === state.cur && state.view === "edit"}" data-id="${p.id}">${esc(label(p, i))}</button>`).join("")
+    + `<button type="button" class="tab add" id="addTab">＋ 物件を追加</button>`;
+}
+function groupSum(p, g, c) {
+  return { monthly: c.monthly, init: c.initFees, during: c.during, exit: c.exitCost }[g.id];
+}
+function summaryHTML(p) {
+  const c = calc(p);
+  return `<div class="big">
+      <div><span>入居時に払う額</span><b>${man(c.moveIn)}</b></div>
+      <div class="main"><span>2年間の総額</span><b>${man(c.total)}</b></div>
+      <div><span>実質の月額</span><b>${man(c.perMonth)}</b></div>
+    </div>
+    <div class="break num">
+      <div><span>初期費用（敷金を含む）</span><span>${yen(c.initFees)}</span></div>
+      <div><span>毎月 ${yen(c.monthly)} × ${MONTHS - c.free}ヶ月${c.free ? `（フリーレント${c.free}ヶ月）` : ""}</span><span>${yen(c.rentTotal)}</span></div>
+      <div><span>2年の間の費用</span><span>${yen(c.during)}</span></div>
+      <div><span>退去時の負担（敷引き＋クリーニング）</span><span>${yen(c.exitCost)}</span></div>
+      <div class="minus"><span>敷金から差し引き（敷金 ${yen(c.shiki)}）</span><span>−${yen(c.shiki)}</span></div>
+      <div><span>退去時に戻る見込み</span><span>${yen(c.back)}${c.exitExtra ? `／追加払い ${yen(c.exitExtra)}` : ""}</span></div>
+    </div>`;
+}
+function rowHTML(p, r) {
+  const v = p[r.k] ?? "";
+  const months = r.unit === "months";
+  const parsed = !months && /万|千/.test(String(v)) ? yen(n(v)) : "";
+  return `<div class="row">
+    <label for="i-${r.k}">${r.label}${r.hint ? `<small>${r.hint}</small>` : ""}</label>
+    <input type="text" id="i-${r.k}" data-k="${r.k}" inputmode="decimal" autocomplete="off" value="${esc(v)}" placeholder="${months ? "0 ヶ月" : "円 / 6.8万"}">
+    ${parsed ? `<span class="parsed" id="p-${r.k}">${parsed}</span>` : `<span class="parsed" id="p-${r.k}"></span>`}
+    ${r.toggle ? `<label class="toggle"><input type="checkbox" id="t-${r.toggle}" data-t="${r.toggle}"${p[r.toggle] ? " checked" : ""}>2年を超えて住む（更新料を総額に入れる）</label>` : ""}
+    ${r.chips ? `<div class="chips">${r.chips.map(([l], i) => `<button type="button" class="chip" data-k="${r.k}" data-c="${i}">${l}</button>`).join("")}</div>` : ""}
+  </div>`;
+}
+function render() {
+  if (!state.loaded) return;
+  renderTabs();
+  document.getElementById("v-edit").setAttribute("aria-pressed", state.view === "edit");
+  document.getElementById("v-cmp").setAttribute("aria-pressed", state.view === "cmp");
+  const storeNote = state.store === "db" ? "入力は自動で保存され、あなただけが見られます。" : "この端末のブラウザに保存されます。";
+  if (!state.props.length) {
+    app.innerHTML = `<div class="empty"><strong>まだ物件がありません</strong><p class="note">物件ごとに家賃と初期費用を入れると、2年住んだ場合の総額を出して比べられます。<br>${storeNote}</p><button type="button" class="btn primary" id="addFirst">最初の物件を追加</button></div>`;
+    return;
+  }
+  if (state.view === "cmp") return renderCmp(storeNote);
+  const p = cur(); if (!p) { state.cur = state.props[0].id; return render(); }
+  const c = calc(p);
+  let h = `<div class="sum"><input class="name" id="i-name" value="${esc(p.name)}" placeholder="物件名（例：博多駅東 ○○マンション 302）" aria-label="物件名"><div id="sumBody">${summaryHTML(p)}</div></div>
+    <p class="note">金額は「68000」「6.8万」どちらでも入れられます。家賃の日割り分は総額に含めていません。${storeNote} <span class="status" id="status" role="status"></span></p>`;
+  GROUPS.forEach(g => {
+    h += `<section class="grp"><h2>${g.name}<small id="g-${g.id}">${yen(groupSum(p, g, c))}${g.id === "monthly" ? "／月" : ""}</small></h2><div class="box">${g.rows.map(r => rowHTML(p, r)).join("")}</div></section>`;
+  });
+  h += `<div class="danger">${state.delArm
+    ? `<span>「${esc(label(p, state.props.indexOf(p)))}」を削除しますか？</span><button type="button" class="btn del" id="delYes">削除する</button><button type="button" class="btn" id="delNo">やめる</button>`
+    : `<button type="button" class="btn del" id="delArm">この物件を削除</button>`}</div>`;
+  app.innerHTML = h;
+}
+function refresh(p) {
+  const c = calc(p);
+  document.getElementById("sumBody").innerHTML = summaryHTML(p);
+  GROUPS.forEach(g => { const el = document.getElementById("g-" + g.id); if (el) el.textContent = yen(groupSum(p, g, c)) + (g.id === "monthly" ? "／月" : ""); });
+}
+function renderCmp(storeNote) {
+  const ps = state.props.map((p, i) => ({ p, i, c: calc(p) }));
+  const ranked = [...ps].sort((a, b) => a.c.total - b.c.total);
+  const best = ranked[0].c.total;
+  let h = `<section class="grp"><h2>2年間の総額が安い順</h2><div class="rank">${ranked.map((x, r) => `
+    <button type="button" class="rcard${r === 0 && ps.length > 1 ? " best" : ""}" data-id="${x.p.id}">
+      <span class="pos">${r + 1}</span>
+      <span class="nm">${esc(label(x.p, x.i))}</span><span class="tot">${yen(x.c.total)}</span>
+      <span class="sub">月 ${yen(x.c.monthly)}・入居時 ${man(x.c.moveIn)}・実質 ${man(x.c.perMonth)}/月</span>
+      <span class="diff">${r === 0 ? (ps.length > 1 ? "いちばん安い" : "") : "+" + yen(x.c.total - best)}</span>
+    </button>`).join("")}</div></section>`;
+  const lines = [
+    ["sec", "毎月"], ...GROUPS[0].rows.map(r => ["row", r.label, x => n(x.p[r.k])]),
+    ["sum", "月額 合計", x => x.c.monthly],
+    ["sec", "入居時"], ...GROUPS[1].rows.map(r => ["row", r.label, x => n(x.p[r.k])]),
+    ["sum", "初期費用 合計", x => x.c.initFees], ["sum", "入居時に払う額（前家賃1ヶ月込み）", x => x.c.moveIn],
+    ["sec", "2年間"], ["row", "家賃など × 月数", x => x.c.rentTotal], ["row", "2年の間の費用", x => x.c.during],
+    ["row", "退去時の負担", x => x.c.exitCost], ["row", "敷金（差し引き）", x => -x.c.shiki],
+    ["tot", "2年間の総額", x => x.c.total], ["sum", "実質の月額", x => x.c.perMonth],
+  ];
+  h += `<section class="grp"><h2>内訳</h2><div class="tbl"><table><thead><tr><th>項目</th>${ranked.map(x => `<th>${esc(label(x.p, x.i))}</th>`).join("")}</tr></thead><tbody>`;
+  lines.forEach(([t, l, f]) => {
+    if (t === "sec") { h += `<tr class="sec"><td colspan="${ranked.length + 1}">${l}</td></tr>`; return; }
+    const vals = ranked.map(f), min = Math.min(...vals.filter(v => v > 0));
+    h += `<tr class="${t === "tot" ? "tot" : ""}"><td>${l}</td>${vals.map(v => `<td class="${t !== "row" && ranked.length > 1 && v === min ? "low" : ""}">${v ? (v < 0 ? "−" + yen(-v) : yen(v)) : "―"}</td>`).join("")}</tr>`;
+  });
+  h += `</tbody></table></div><p class="note">緑の数字がいちばん安い物件です。カードをタップすると入力画面に戻ります。${storeNote}</p></section>`;
+  app.innerHTML = h;
+}
+
+/* ---------- events ---------- */
+function addProp() {
+  const p = { id: "p" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), name: "", renewOn: false, createdAt: Date.now() };
+  state.props.push(p); state.cur = p.id; state.view = "edit"; state.delArm = false;
+  persist(p); render(); window.scrollTo(0, 0);
+  setTimeout(() => document.getElementById("i-name")?.focus(), 0);
+}
+tabsEl.addEventListener("click", e => {
+  const b = e.target.closest(".tab"); if (!b) return;
+  if (b.id === "addTab") return addProp();
+  state.cur = b.dataset.id; state.view = "edit"; state.delArm = false; render(); window.scrollTo(0, 0);
+});
+document.getElementById("v-edit").onclick = () => { state.view = "edit"; render(); };
+document.getElementById("v-cmp").onclick = () => { state.view = "cmp"; render(); window.scrollTo(0, 0); };
+app.addEventListener("click", e => {
+  const t = e.target.closest("button"); if (!t) return;
+  if (t.id === "addFirst") return addProp();
+  if (t.classList.contains("rcard")) { state.cur = t.dataset.id; state.view = "edit"; render(); window.scrollTo(0, 0); return; }
+  const p = cur(); if (!p) return;
+  if (t.classList.contains("chip")) {
+    const r = ROWS.find(x => x.k === t.dataset.k), v = r.chips[+t.dataset.c][1](p);
+    if (!v) { setStatus("先に家賃を入れてください"); return; }
+    p[r.k] = String(v); document.getElementById("i-" + r.k).value = p[r.k];
+    document.getElementById("p-" + r.k).textContent = "";
+    persist(p); refresh(p); return;
+  }
+  if (t.id === "delArm") { state.delArm = true; return render(); }
+  if (t.id === "delNo") { state.delArm = false; return render(); }
+  if (t.id === "delYes") {
+    state.props = state.props.filter(x => x !== p);
+    if (state.store === "db") db.collection("data/users/" + uid).doc(p.id).delete().catch(() => setStatus("削除できませんでした")); else lsSave();
+    state.cur = state.props[state.props.length - 1]?.id || null; state.delArm = false; render();
+  }
+});
+app.addEventListener("input", e => {
+  const p = cur(); if (!p) return; const el = e.target;
+  if (el.id === "i-name") { p.name = el.value; renderTabs(); persist(p); return; }
+  if (el.dataset.t) { p[el.dataset.t] = el.checked; persist(p); refresh(p); return; }
+  if (el.dataset.k) {
+    p[el.dataset.k] = el.value;
+    const r = ROWS.find(x => x.k === el.dataset.k);
+    const pe = document.getElementById("p-" + el.dataset.k);
+    if (pe) pe.textContent = r.unit !== "months" && /万|千/.test(el.value) ? yen(n(el.value)) : "";
+    persist(p); refresh(p);
+  }
+});
+boot();
+</script>
