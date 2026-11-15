@@ -1,0 +1,389 @@
+<title>内見チェック帳</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Zen+Maru+Gothic:wght@700&display=swap">
+<style>
+/* Layout: one narrow phone-first column. Sticky property switcher on top, checklist grouped by where you check it. */
+:root {
+  --bg: #f5f6f8;
+  --surface: #ffffff;
+  --ink: #1d2433;
+  --muted: #5d6679;
+  --line: #dde1e8;
+  --stamp: #d4362c;      /* 赤丸：オカンの⭕ */
+  --stamp-soft: #fbe9e7;
+  --warn: #b7791f;
+  --warn-soft: #fbf1df;
+  --ng: #3b4252;
+  --ng-soft: #e7e9ee;
+  --focus: #2f6fd6;
+  --font-body: "Zen Kaku Gothic New", "Hiragino Sans", "Noto Sans JP", system-ui, sans-serif;
+  --font-head: "Zen Maru Gothic", "Hiragino Maru Gothic ProN", "Zen Kaku Gothic New", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #12151c; --surface: #1b1f29; --ink: #e8ebf2; --muted: #9aa3b5; --line: #2c3240;
+  --stamp: #ff6b5e; --stamp-soft: #3a1f1d; --warn: #e8b04f; --warn-soft: #362a14;
+  --ng: #c9cfdb; --ng-soft: #2a2f3b; --focus: #7aa7ff; color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #12151c; --surface: #1b1f29; --ink: #e8ebf2; --muted: #9aa3b5; --line: #2c3240;
+  --stamp: #ff6b5e; --stamp-soft: #3a1f1d; --warn: #e8b04f; --warn-soft: #362a14;
+  --ng: #c9cfdb; --ng-soft: #2a2f3b; --focus: #7aa7ff; color-scheme: dark; }
+
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 15px; line-height: 1.6; }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--surface); }
+button, input, textarea { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+
+.bar { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--surface); border-bottom: 1px solid var(--line); }
+.wrap { max-width: 680px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.bar .wrap { padding-block: 10px; display: grid; gap: 8px; }
+.top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+h1 { font-family: var(--font-head); font-size: 19px; margin: 0; display: flex; align-items: center; gap: 8px; }
+h1 .ring { width: 18px; height: 18px; border: 3px solid var(--stamp); border-radius: 50%; display: inline-block; }
+.views { display: flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.views button { border: 0; background: transparent; padding: 4px 12px; font-size: 13px; cursor: pointer; color: var(--muted); }
+.views button[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
+
+.tabs { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; }
+.tabs::-webkit-scrollbar { display: none; }
+.tab { flex: none; border: 1px solid var(--line); background: var(--bg); border-radius: 999px; padding: 4px 12px; font-size: 13px; cursor: pointer; white-space: nowrap; max-width: 180px; overflow: hidden; text-overflow: ellipsis; }
+.tab[aria-selected="true"] { background: var(--stamp); border-color: var(--stamp); color: #fff; font-weight: 700; }
+.tab.add { border-style: dashed; color: var(--muted); }
+
+main .wrap { padding-block: 16px 64px; display: grid; gap: 20px; }
+.note { font-size: 12px; color: var(--muted); }
+
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 14px; display: grid; gap: 10px; }
+.fields { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.fields .full { grid-column: 1 / -1; }
+label.f { display: grid; gap: 2px; font-size: 12px; color: var(--muted); min-width: 0; }
+label.f input { border: 1px solid var(--line); background: var(--bg); border-radius: 8px; padding: 8px 10px; font-size: 15px; width: 100%; min-width: 0; }
+.prog { display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; flex-wrap: wrap; }
+.meter { flex: 1 1 120px; height: 6px; background: var(--ng-soft); border-radius: 3px; overflow: hidden; }
+.meter i { display: block; height: 100%; background: var(--stamp); width: 0; transition: width .3s; }
+.tally b { color: var(--ink); }
+
+section.grp { display: grid; gap: 8px; }
+section.grp h2 { font-family: var(--font-head); font-size: 15px; margin: 0; display: flex; justify-content: space-between; align-items: baseline; }
+section.grp h2 small { font-family: var(--font-body); font-weight: 400; font-size: 12px; color: var(--muted); }
+
+.item { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; display: grid; gap: 8px; }
+.item[data-v="ok"] { border-color: color-mix(in srgb, var(--stamp) 45%, var(--line)); }
+.item[data-v="warn"] { border-color: color-mix(in srgb, var(--warn) 55%, var(--line)); }
+.item[data-v="ng"] { border-color: var(--ng); }
+.ihead { display: flex; gap: 10px; align-items: flex-start; }
+.itext { flex: 1; min-width: 0; }
+.itext strong { display: block; font-weight: 700; }
+.itext span { display: block; font-size: 12.5px; color: var(--muted); }
+.marks { display: flex; gap: 4px; flex: none; }
+.mk { width: 38px; height: 38px; border-radius: 50%; border: 1.5px solid var(--line); background: var(--bg); cursor: pointer; font-size: 18px; line-height: 1; display: grid; place-items: center; color: var(--muted); }
+.mk[aria-pressed="true"][data-m="ok"] { background: var(--stamp-soft); border-color: var(--stamp); color: var(--stamp); font-weight: 700; }
+.mk[aria-pressed="true"][data-m="warn"] { background: var(--warn-soft); border-color: var(--warn); color: var(--warn); font-weight: 700; }
+.mk[aria-pressed="true"][data-m="ng"] { background: var(--ng-soft); border-color: var(--ng); color: var(--ng); font-weight: 700; }
+
+.memo { position: relative; }
+.memo textarea { width: 100%; min-height: 40px; resize: vertical; border: 1px solid var(--line); background: var(--bg); border-radius: 8px; padding: 8px 46px 8px 10px; font-size: 14px; line-height: 1.5; field-sizing: content; }
+.mic { position: absolute; right: 5px; top: 5px; width: 32px; height: 32px; border-radius: 50%; border: 0; background: transparent; color: var(--muted); cursor: pointer; display: grid; place-items: center; }
+.mic svg { width: 18px; height: 18px; }
+.mic.on { background: var(--stamp); color: #fff; animation: pulse 1.2s ease-in-out infinite; }
+@keyframes pulse { 50% { box-shadow: 0 0 0 6px color-mix(in srgb, var(--stamp) 25%, transparent); } }
+@media (prefers-reduced-motion: reduce) { .mic.on { animation: none; } .meter i { transition: none; } }
+.partial { font-size: 12.5px; color: var(--muted); font-style: italic; min-height: 0; }
+
+.danger { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; font-size: 13px; }
+.btn { border: 1px solid var(--line); background: var(--surface); border-radius: 8px; padding: 6px 14px; cursor: pointer; }
+.btn.primary { background: var(--stamp); border-color: var(--stamp); color: #fff; font-weight: 700; }
+.btn.del { color: var(--stamp); }
+
+.empty { text-align: center; padding: 40px 16px; display: grid; gap: 12px; justify-items: center; }
+.empty .ring { width: 56px; height: 56px; border: 6px solid var(--stamp); border-radius: 50%; }
+
+.cmp { overflow-x: auto; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; }
+.cmp table { border-collapse: collapse; font-size: 13px; min-width: 100%; }
+.cmp th, .cmp td { border-bottom: 1px solid var(--line); padding: 8px 10px; text-align: center; white-space: nowrap; }
+.cmp th:first-child, .cmp td:first-child { text-align: left; position: sticky; left: 0; background: var(--surface); white-space: normal; min-width: 150px; }
+.cmp thead th { font-weight: 700; }
+.cmp .s-ok { color: var(--stamp); font-weight: 700; }
+.cmp .s-warn { color: var(--warn); font-weight: 700; }
+.cmp .s-ng { color: var(--ng); font-weight: 700; }
+.cmp .s-none { color: var(--line); }
+.cmp tfoot td { font-weight: 700; font-variant-numeric: tabular-nums; }
+.legend { font-size: 12px; color: var(--muted); display: flex; gap: 12px; flex-wrap: wrap; }
+.status { font-size: 12px; color: var(--muted); }
+</style>
+
+<header class="bar">
+  <div class="wrap">
+    <div class="top">
+      <h1><span class="ring" aria-hidden="true"></span>内見チェック帳</h1>
+      <div class="views" role="group" aria-label="表示切替">
+        <button type="button" id="v-check" aria-pressed="true">チェック</button>
+        <button type="button" id="v-cmp" aria-pressed="false">比較</button>
+      </div>
+    </div>
+    <div class="tabs" id="tabs" role="tablist" aria-label="物件"></div>
+  </div>
+</header>
+
+<main>
+  <div class="wrap" id="app">
+    <p class="note">読み込み中…</p>
+  </div>
+</main>
+
+<script>
+const GROUPS = [
+  { id: "ask", name: "不動産屋さんに聞く", hint: "案内の人に質問", items: [
+    ["moved", "先住者はなぜ引っ越したのか", "隣の部屋や上の階とのトラブルがなかったか、必ず確認"],
+    ["jiko", "事故物件ではないか", "告知事項の有無を確認"],
+    ["aircon", "エアコンは新築時に新品を付けたものか", "何年製か（本体のシールで確認）"],
+  ]},
+  { id: "room", name: "部屋の中", hint: "", items: [
+    ["smell", "タバコや下水管の匂いがしないか", "窓を閉めた状態で、部屋全体を。壁に匂いが染みついていないか"],
+    ["glass", "窓がペアガラスか", "触ればわかる"],
+    ["wind", "外から入る風が臭くないか", "窓を開けて、ベランダに出て確認"],
+  ]},
+  { id: "bldg", name: "建物まわり", hint: "", items: [
+    ["common", "階段・廊下などの共用部がきれいに掃除されているか", ""],
+    ["garbage", "ゴミ置き場にゴミが出しっぱなしになっていないか", ""],
+    ["parking", "目の前の駐車場の車", "ヤンキーっぽい車（マフラーを太くしている等）がないか"],
+    ["north", "北側の建物がどんな建物か", "写真を撮っておく"],
+  ]},
+  { id: "area", name: "周辺環境", hint: "", items: [
+    ["traffic", "前の道路の通行量", "車の走行音が多いかどうか"],
+    ["slope", "駅までの道のりが平坦か", "坂があるとしんどい"],
+    ["shops", "近所にいかがわしい店がないか", ""],
+    ["super", "近くのスーパーの品揃え", "スーパーがあるなら中も見ておく"],
+  ]},
+];
+const ITEMS = GROUPS.flatMap(g => g.items);
+const MARKS = [["ok", "◯", "良い"], ["warn", "△", "気になる"], ["ng", "✕", "ダメ"]];
+const MIC = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>';
+
+const state = { props: [], cur: null, view: "check", loaded: false, store: "none", dict: null, listenFor: null, delArm: false };
+const app = document.getElementById("app");
+const tabsEl = document.getElementById("tabs");
+
+/* ---------- storage: db (private per person) or this browser ---------- */
+let db = null, uid = null;
+const LS = "naiken-checklist-v1";
+function lsLoad() { try { return JSON.parse(localStorage.getItem(LS) || "[]"); } catch { return []; } }
+function lsSave() { try { localStorage.setItem(LS, JSON.stringify(state.props)); } catch {} }
+const timers = {};
+function persist(p) {
+  p.updatedAt = Date.now();
+  clearTimeout(timers[p.id]);
+  timers[p.id] = setTimeout(async () => {
+    if (state.store === "db") {
+      try { await db.collection("data/users/" + uid).doc(p.id).set(JSON.parse(JSON.stringify(p))); setStatus("保存しました"); }
+      catch (e) { setStatus("保存できませんでした。通信を確認してください"); }
+    } else { lsSave(); setStatus("この端末に保存しました"); }
+  }, 600);
+}
+function removeStore(p) {
+  if (state.store === "db") db.collection("data/users/" + uid).doc(p.id).delete().catch(() => setStatus("削除できませんでした"));
+  else lsSave();
+}
+let statusTimer;
+function setStatus(t) { const s = document.getElementById("status"); if (s) { s.textContent = t; clearTimeout(statusTimer); statusTimer = setTimeout(() => { s.textContent = ""; }, 2500); } }
+
+async function boot() {
+  const fallback = () => { state.store = "local"; state.props = lsLoad(); finishLoad(); };
+  const t = setTimeout(() => { if (!state.loaded) fallback(); }, 10000);
+  try {
+    if (!window.claude?.use) { clearTimeout(t); return fallback(); }
+    const [d, u] = await Promise.all([claude.use("db"), claude.use("user")]);
+    uid = u ? await u.id() : null;
+    if (!d || !uid) { clearTimeout(t); return fallback(); }
+    db = d;
+    const snap = await db.collection("data/users/" + uid).get();
+    if (state.loaded) return;
+    clearTimeout(t);
+    state.store = "db";
+    state.props = snap.docs.map(s => ({ ...s.data(), id: s.id }));
+    finishLoad();
+  } catch { clearTimeout(t); if (!state.loaded) fallback(); }
+}
+function finishLoad() {
+  state.loaded = true;
+  state.props.sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
+  state.props.forEach(p => { p.checks ||= {}; p.notes ||= {}; });
+  state.cur = state.props[state.props.length - 1]?.id || null;
+  render();
+}
+
+/* ---------- dictation ---------- */
+(async () => {
+  if (!window.claude?.use) return;
+  const d = await claude.use("dictation");
+  if (!d) return;
+  state.dict = d;
+  d.onFinal(({ text }) => {
+    const ta = state.listenFor && document.getElementById(state.listenFor);
+    if (!ta) return;
+    ta.value = ta.value ? ta.value + text : text.trimStart();
+    ta.dispatchEvent(new Event("input", { bubbles: true }));
+  });
+  d.onPartial(({ text }) => { const el = state.listenFor && document.getElementById(state.listenFor + "-p"); if (el) el.textContent = text; });
+  d.onState(({ state: s, reason }) => {
+    document.querySelectorAll(".mic").forEach(b => b.classList.toggle("on", s !== "idle" && b.dataset.for === state.listenFor));
+    if (s === "idle") {
+      const el = state.listenFor && document.getElementById(state.listenFor + "-p"); if (el) el.textContent = "";
+      if (reason === "not_granted" || reason === "unavailable") { state.dict = null; render(); setStatus("音声入力は使えません。キーボードの音声入力を使ってください"); }
+      else if (reason === "upstream_error" || reason === "rate_limited") setStatus("音声入力が途切れました。もう一度マイクを押してください");
+      state.listenFor = null;
+    }
+  });
+  render();
+})();
+function micClick(id) {
+  const d = state.dict; if (!d) return;
+  if (d.active() && state.listenFor === id) { d.stop(); return; }
+  const switching = d.active();
+  state.listenFor = id;
+  const p = switching ? d.stop().then(() => d.start()) : d.start();
+  p.catch(e => {
+    if (e?.code === "not_granted") { state.dict = null; render(); setStatus("マイクが許可されていません。キーボードの音声入力を使ってください"); }
+    else if (e?.code !== "stopped") setStatus("音声入力を開始できませんでした");
+  });
+}
+
+/* ---------- render ---------- */
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const cur = () => state.props.find(p => p.id === state.cur);
+const label = (p, i) => p.name?.trim() || "物件 " + (i + 1);
+
+function memoBox(id, val, ph) {
+  return `<div class="memo"><textarea id="${id}" rows="1" placeholder="${esc(ph)}">${esc(val)}</textarea>${state.dict ? `<button type="button" class="mic${state.listenFor === id && state.dict.active() ? " on" : ""}" data-for="${id}" aria-label="音声で入力">${MIC}</button>` : ""}</div><div class="partial" id="${id}-p"></div>`;
+}
+
+function renderTabs() {
+  tabsEl.innerHTML = state.props.map((p, i) =>
+    `<button type="button" class="tab" role="tab" aria-selected="${p.id === state.cur && state.view === "check"}" data-id="${p.id}">${esc(label(p, i))}</button>`).join("")
+    + `<button type="button" class="tab add" id="addTab">＋ 物件を追加</button>`;
+}
+
+function tally(p) {
+  const c = { ok: 0, warn: 0, ng: 0 };
+  ITEMS.forEach(([k]) => { if (c[p.checks[k]] !== undefined) c[p.checks[k]]++; });
+  return c;
+}
+
+function render() {
+  if (!state.loaded) return;
+  renderTabs();
+  document.getElementById("v-check").setAttribute("aria-pressed", state.view === "check");
+  document.getElementById("v-cmp").setAttribute("aria-pressed", state.view === "cmp");
+  const storeNote = state.store === "db" ? "あなただけが見られる場所に自動保存されます。" : "この端末のブラウザに保存されます（別の端末には出ません）。";
+  const voiceNote = state.dict ? "マイクを押すと話した言葉がメモに入ります。" : "音声入力は、スマホのキーボードのマイクボタンを使ってください。";
+
+  if (!state.props.length) {
+    app.innerHTML = `<div class="empty"><span class="ring" aria-hidden="true"></span><strong>まだ物件がありません</strong><p class="note">内見する物件を追加すると、オカンのチェック項目14個が使えます。<br>${storeNote}</p><button type="button" class="btn primary" id="addFirst">最初の物件を追加</button></div>`;
+    return;
+  }
+  if (state.view === "cmp") return renderCmp(storeNote);
+
+  const p = cur(); if (!p) { state.cur = state.props[0].id; return render(); }
+  const c = tally(p), done = c.ok + c.warn + c.ng;
+  let h = `<div class="card">
+    <div class="fields">
+      <label class="f full">物件名<input id="f-name" value="${esc(p.name)}" placeholder="例：博多駅東 ○○マンション 302"></label>
+      <label class="f">家賃・管理費<input id="f-rent" value="${esc(p.rent)}" placeholder="例：6.8万＋3千"></label>
+      <label class="f">内見日時<input id="f-date" value="${esc(p.date)}" placeholder="例：11/16 14:00"></label>
+      <label class="f full">住所・最寄り駅<input id="f-addr" value="${esc(p.addr)}" placeholder="例：博多駅 徒歩12分"></label>
+    </div>
+    <div class="prog"><span class="meter" aria-hidden="true"><i style="width:${done / ITEMS.length * 100}%"></i></span>
+      <span class="tally">${done}/${ITEMS.length} 確認　◯<b>${c.ok}</b>　△<b>${c.warn}</b>　✕<b>${c.ng}</b></span></div>
+  </div>
+  <p class="note">${voiceNote} ${storeNote} <span class="status" id="status" role="status"></span></p>`;
+
+  GROUPS.forEach(g => {
+    const gd = g.items.filter(([k]) => p.checks[k]).length;
+    h += `<section class="grp"><h2>${g.name}<small>${gd}/${g.items.length}</small></h2>`;
+    g.items.forEach(([k, t, s]) => {
+      const v = p.checks[k] || "";
+      h += `<div class="item" data-v="${v}"><div class="ihead"><div class="itext"><strong>${t}</strong>${s ? `<span>${s}</span>` : ""}</div>
+        <div class="marks" role="group" aria-label="${t}">${MARKS.map(([m, sym, name]) =>
+          `<button type="button" class="mk" data-k="${k}" data-m="${m}" aria-pressed="${v === m}" aria-label="${name}" title="${name}">${sym}</button>`).join("")}</div></div>
+        ${memoBox("n-" + k, p.notes[k], "メモ（聞いた答え・気づいたこと）")}</div>`;
+    });
+    h += `</section>`;
+  });
+  h += `<section class="grp"><h2>全体メモ</h2>${memoBox("n-_all", p.memo, "日当たり、収納、契約条件など自由に")}</section>
+    <div class="danger">${state.delArm
+      ? `<span>「${esc(label(p, state.props.indexOf(p)))}」を削除しますか？</span><button type="button" class="btn del" id="delYes">削除する</button><button type="button" class="btn" id="delNo">やめる</button>`
+      : `<button type="button" class="btn del" id="delArm">この物件を削除</button>`}</div>`;
+  app.innerHTML = h;
+}
+
+function renderCmp(storeNote) {
+  const ps = state.props;
+  const sym = v => { const m = MARKS.find(x => x[0] === v); return m ? `<span class="s-${v}">${m[1]}</span>` : `<span class="s-none">―</span>`; };
+  let h = `<div class="legend"><span><span class="s-ok">◯</span> 良い</span><span><span class="s-warn">△</span> 気になる</span><span><span class="s-ng">✕</span> ダメ</span><span>― 未確認</span></div>
+    <div class="cmp"><table><thead><tr><th>項目</th>${ps.map((p, i) => `<th>${esc(label(p, i))}</th>`).join("")}</tr></thead><tbody>`;
+  GROUPS.forEach(g => {
+    h += `<tr><td colspan="${ps.length + 1}" style="font-weight:700;background:var(--bg)">${g.name}</td></tr>`;
+    g.items.forEach(([k, t]) => { h += `<tr><td>${t}</td>${ps.map(p => `<td>${sym(p.checks[k])}</td>`).join("")}</tr>`; });
+  });
+  h += `</tbody><tfoot><tr><td>◯ / △ / ✕</td>${ps.map(p => { const c = tally(p); return `<td>${c.ok} / ${c.warn} / ${c.ng}</td>`; }).join("")}</tr>
+    <tr><td>家賃</td>${ps.map(p => `<td>${esc(p.rent) || "―"}</td>`).join("")}</tr></tfoot></table></div>
+    <p class="note">物件名をタップするとチェック画面に戻ります。${storeNote}</p>`;
+  app.innerHTML = h;
+}
+
+/* ---------- events ---------- */
+function addProp() {
+  const p = { id: "p" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), name: "", rent: "", date: "", addr: "", memo: "", checks: {}, notes: {}, createdAt: Date.now() };
+  state.props.push(p); state.cur = p.id; state.view = "check"; state.delArm = false;
+  persist(p); render(); window.scrollTo(0, 0);
+  setTimeout(() => document.getElementById("f-name")?.focus(), 0);
+}
+tabsEl.addEventListener("click", e => {
+  const b = e.target.closest(".tab"); if (!b) return;
+  if (b.id === "addTab") return addProp();
+  state.cur = b.dataset.id; state.view = "check"; state.delArm = false; render(); window.scrollTo(0, 0);
+});
+document.getElementById("v-check").onclick = () => { state.view = "check"; render(); };
+document.getElementById("v-cmp").onclick = () => { state.view = "cmp"; render(); };
+
+app.addEventListener("click", e => {
+  const t = e.target.closest("button"); if (!t) return;
+  if (t.id === "addFirst") return addProp();
+  const p = cur();
+  if (t.classList.contains("mic")) return micClick(t.dataset.for);
+  if (t.classList.contains("mk") && p) {
+    const k = t.dataset.k, m = t.dataset.m;
+    p.checks[k] = p.checks[k] === m ? "" : m;
+    persist(p);
+    const item = t.closest(".item"); item.dataset.v = p.checks[k];
+    item.querySelectorAll(".mk").forEach(x => x.setAttribute("aria-pressed", x.dataset.m === p.checks[k]));
+    refreshProgress(p); return;
+  }
+  if (t.id === "delArm") { state.delArm = true; return render(); }
+  if (t.id === "delNo") { state.delArm = false; return render(); }
+  if (t.id === "delYes" && p) {
+    state.props = state.props.filter(x => x !== p); removeStore(p);
+    state.cur = state.props[state.props.length - 1]?.id || null; state.delArm = false; render();
+  }
+});
+function refreshProgress(p) {
+  const c = tally(p), done = c.ok + c.warn + c.ng;
+  const bar = app.querySelector(".meter i"); if (bar) bar.style.width = done / ITEMS.length * 100 + "%";
+  const ta = app.querySelector(".tally"); if (ta) ta.innerHTML = `${done}/${ITEMS.length} 確認　◯<b>${c.ok}</b>　△<b>${c.warn}</b>　✕<b>${c.ng}</b>`;
+  app.querySelectorAll("section.grp").forEach((s, i) => { const g = GROUPS[i]; if (!g) return; s.querySelector("h2 small").textContent = g.items.filter(([k]) => p.checks[k]).length + "/" + g.items.length; });
+}
+app.addEventListener("input", e => {
+  const p = cur(); if (!p) return; const id = e.target.id;
+  if (id === "f-name") { p.name = e.target.value; renderTabs(); }
+  else if (id === "f-rent") p.rent = e.target.value;
+  else if (id === "f-date") p.date = e.target.value;
+  else if (id === "f-addr") p.addr = e.target.value;
+  else if (id === "n-_all") p.memo = e.target.value;
+  else if (id.startsWith("n-")) p.notes[id.slice(2)] = e.target.value;
+  else return;
+  persist(p);
+});
+
+boot();
+</script>
